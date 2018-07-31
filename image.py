@@ -1,3 +1,8 @@
+'''
+This is the development branch
+'''
+
+
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfpage import PDFPage
@@ -12,6 +17,8 @@ import time
 import numpy as np
 from scipy import spatial
 from collections import OrderedDict
+
+## NOTES HERE... 
 
 locations = {'Name:' : [475, 734], 'Well Location:' : [100, 748] , 'Fm/Strat. Unit:' : [308, 734], 'Date:' : [469, 706]}
 
