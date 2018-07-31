@@ -1,6 +1,41 @@
-'''
-This is the development branch
-'''
+# /////////////////////////////////////////////////////////////// #
+# !python2.7
+# -*- coding: utf-8 -*-
+# Python Script initially created on 12/05/2018
+# Compiled by Aly @ Grasselli's Geomechanics Group, UofT, 2018
+# Created using PyCharm // Tested on Spyder
+# Current Version 06 - Dated July 31, 2018
+# /////////////////////////////////////////////////////////////// #
+
+## This code was compiled based on the layout of d_66_I_94_B_16_Continuous_Core Log
+
+# V01
+#   - Initial release
+
+# V02
+#   - PDF conversion is completely housed within the script.
+#   - Code optimization {Split into different modules}.
+#   - Modules run for different pixel columns as defined.
+#   - Identifies depositional bedding type.
+
+# V03
+#   - Adjust scale based on dpi.
+#   - Code optimization {Algorithm changed}.
+#   - Changed colors in terminal outputs.
+#   - PDF split into MediaBOX to have a higher resolution image during template matching.
+#   - Template matching functional.
+
+# V04
+#   - Write to Sediment and Environment to CSV.
+#   - Code optimization {Algorithm changed}.
+
+# V05
+#   - Added the colour code to the visual output on python terminal.
+#   - Scaling template from 90% to 110% (90, 100, 110) to ook for possible matches
+#   - Fixed issue with different size (length) logs
+
+# V06
+#   - Vision changed to using OCRs
 
 
 from pdfminer.pdfparser import PDFParser
@@ -18,9 +53,22 @@ import numpy as np
 from scipy import spatial
 from collections import OrderedDict
 
-## NOTES HERE... 
 
 locations = {'Name:' : [475, 734], 'Well Location:' : [100, 748] , 'Fm/Strat. Unit:' : [308, 734], 'Date:' : [469, 706]}
+
+
+'''
+TIMER FUNCTION
+'''
+
+
+def calc_timer_values(end_time):
+    minutes, sec = divmod(end_time, 60)
+    if end_time < 60:
+        return "\033[1m%.2f seconds\033[0m" % end_time
+    else:
+        return "\033[1m%d minutes and %d seconds\033[0m." % (minutes, sec)
+
 
 '''
 CONVERT BYTES TO STRING
@@ -88,7 +136,7 @@ def update_page_text_hash (h, lt_obj, pct=0.2):
         h[(x0,x1)] = [to_bytestring(lt_obj.get_text())]
     return h
 
-def parse_obj(lt_objs, y_loc=700):
+def parse_obj(lt_objs, y_loc=610):
     coord, corel = [], {}
     depths = {}
     # loop over the object list
@@ -137,15 +185,17 @@ def parse_obj(lt_objs, y_loc=700):
     check_depth_column('Depths Values', a)
     check_depth_column('Pixel Location', b)
 
-    print(a, b)
-    ratio = abs((a[0] - a[-1]) / (b[0] - b[-1]))
-    print("Ratio : %s" % ratio)
+    y = [a[0], a[-1]]
+    x = [b[0], b[-1]]
+    m, c = np.polyfit(x, y, 1)
+    print("Coeff : %.3f x + %.3f" % (m, c))
 
 
     for obj in lt_objs:
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
             if int(obj.bbox[0]) in range(524, 535) and int(obj.bbox[1]) < y_loc:
-                print(obj.bbox[1], obj.bbox[1] / ratio, obj.get_text().replace('\n', '_'))
+                print("%.3f, %s" % (m * obj.bbox[1] + c, obj.get_text().replace('\n', '_')))
+                # print(obj.bbox[1], obj.bbox[1] / ratio, obj.get_text().replace('\n', '_'))
 
 def check_depth_column(name, list_values):
     if name == 'Depth Values':
