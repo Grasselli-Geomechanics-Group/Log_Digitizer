@@ -1,0 +1,612 @@
+From (m),To (m),Color Code,Lithofacies,Contact to next Surface
+1929.995,1929.995,white,,smooth
+1930.005,1930.005,black,,smooth
+1930.016,1933.117,white,,smooth
+1933.128,1933.402,khaki,Sandy F-C Siltstone to Silty VF Sandstone,rough
+1933.412,1933.623,tan,Bituminous F-M Siltstone,smooth
+1933.634,1933.972,skyblue,Laminated Bedded Resedimented Bioclasts,rough
+1933.982,1934.583,tan,Bituminous F-M Siltstone,smooth
+1934.594,1935.206,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+1935.216,1935.691,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+1935.701,1935.976,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+1935.986,1936.081,sandybrown,Bituminous F-C Siltstone,smooth
+1936.092,1937.695,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+1937.706,1938.085,tan,Bituminous F-M Siltstone,smooth
+1938.096,1939.003,khaki,Sandy F-C Siltstone to Silty VF Sandstone,rough
+1939.014,1939.404,sandybrown,Bituminous F-C Siltstone,rough
+1939.415,1939.541,tan,Bituminous F-M Siltstone,smooth
+1939.552,1939.836,sandybrown,Bituminous F-C Siltstone,smooth
+1939.847,1940.026,tan,Bituminous F-M Siltstone,smooth
+1940.037,1940.301,sandybrown,Bituminous F-C Siltstone,smooth
+1940.311,1940.459,tan,Bituminous F-M Siltstone,smooth
+1940.469,1940.701,sandybrown,Bituminous F-C Siltstone,smooth
+1940.712,1941.176,tan,Bituminous F-M Siltstone,smooth
+1941.187,1941.313,sandybrown,Bituminous F-C Siltstone,smooth
+1941.324,1941.545,tan,Bituminous F-M Siltstone,smooth
+1941.556,1941.735,sandybrown,Bituminous F-C Siltstone,smooth
+1941.746,1942.094,tan,Bituminous F-M Siltstone,smooth
+1942.104,1942.273,sandybrown,Bituminous F-C Siltstone,smooth
+1942.284,1942.579,tan,Bituminous F-M Siltstone,smooth
+1942.590,1942.769,sandybrown,Bituminous F-C Siltstone,smooth
+1942.780,1942.980,tan,Bituminous F-M Siltstone,smooth
+1942.991,1943.117,darkseagreen,Phosphatic - Bituminous Sandy Siltstone to Breccia,smooth
+1943.128,1943.381,sandybrown,Bituminous F-C Siltstone,smooth
+1943.391,1943.729,tan,Bituminous F-M Siltstone,smooth
+1943.739,1943.866,sandybrown,Bituminous F-C Siltstone,smooth
+1943.877,1944.130,tan,Bituminous F-M Siltstone,smooth
+1944.140,1944.256,sandybrown,Bituminous F-C Siltstone,smooth
+1944.267,1944.552,tan,Bituminous F-M Siltstone,smooth
+1944.562,1944.794,sandybrown,Bituminous F-C Siltstone,smooth
+1944.805,1944.953,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+1944.963,1945.164,sandybrown,Bituminous F-C Siltstone,smooth
+1945.174,1945.301,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+1945.311,1945.891,sandybrown,Bituminous F-C Siltstone,smooth
+1945.902,1946.071,tan,Bituminous F-M Siltstone,smooth
+1946.081,1946.461,sandybrown,Bituminous F-C Siltstone,smooth
+1946.472,1946.640,tan,Bituminous F-M Siltstone,smooth
+1946.651,1946.915,sandybrown,Bituminous F-C Siltstone,smooth
+1946.925,1947.083,tan,Bituminous F-M Siltstone,smooth
+1947.094,1947.210,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+1947.220,1947.526,sandybrown,Bituminous F-C Siltstone,smooth
+1947.537,1947.653,tan,Bituminous F-M Siltstone,smooth
+1947.664,1947.885,sandybrown,Bituminous F-C Siltstone,smooth
+1947.896,1948.043,tan,Bituminous F-M Siltstone,smooth
+1948.054,1948.328,sandybrown,Bituminous F-C Siltstone,smooth
+1948.339,1948.507,tan,Bituminous F-M Siltstone,smooth
+1948.518,1948.739,sandybrown,Bituminous F-C Siltstone,smooth
+1948.750,1948.908,tan,Bituminous F-M Siltstone,smooth
+1948.919,1949.035,sandybrown,Bituminous F-C Siltstone,smooth
+1949.045,1949.393,tan,Bituminous F-M Siltstone,smooth
+1949.404,1949.583,sandybrown,Bituminous F-C Siltstone,smooth
+1949.594,1949.752,tan,Bituminous F-M Siltstone,smooth
+1949.763,1950.047,sandybrown,Bituminous F-C Siltstone,smooth
+1950.058,1950.248,tan,Bituminous F-M Siltstone,smooth
+1950.258,1950.469,sandybrown,Bituminous F-C Siltstone,smooth
+1950.480,1950.638,tan,Bituminous F-M Siltstone,rough
+1950.649,1951.113,sandybrown,Bituminous F-C Siltstone,smooth
+1951.123,1951.282,tan,Bituminous F-M Siltstone,smooth
+1951.292,1951.429,sandybrown,Bituminous F-C Siltstone,smooth
+1951.440,1951.630,tan,Bituminous F-M Siltstone,smooth
+1951.640,1951.872,sandybrown,Bituminous F-C Siltstone,smooth
+1951.883,1952.020,tan,Bituminous F-M Siltstone,smooth
+1952.031,1952.263,sandybrown,Bituminous F-C Siltstone,smooth
+1952.273,1952.706,tan,Bituminous F-M Siltstone,smooth
+1952.716,1952.896,sandybrown,Bituminous F-C Siltstone,smooth
+1952.906,1953.128,tan,Bituminous F-M Siltstone,smooth
+1953.138,1953.275,sandybrown,Bituminous F-C Siltstone,smooth
+1953.286,1953.571,tan,Bituminous F-M Siltstone,smooth
+1953.581,1953.697,sandybrown,Bituminous F-C Siltstone,smooth
+1953.708,1954.024,tan,Bituminous F-M Siltstone,smooth
+1954.035,1954.172,sandybrown,Bituminous F-C Siltstone,smooth
+1954.182,1954.351,tan,Bituminous F-M Siltstone,smooth
+1954.362,1954.552,sandybrown,Bituminous F-C Siltstone,smooth
+1954.562,1954.720,tan,Bituminous F-M Siltstone,smooth
+1954.731,1954.868,sandybrown,Bituminous F-C Siltstone,smooth
+1954.879,1955.090,tan,Bituminous F-M Siltstone,smooth
+1955.100,1955.237,sandybrown,Bituminous F-C Siltstone,smooth
+1955.248,1955.564,tan,Bituminous F-M Siltstone,smooth
+1955.575,1955.754,sandybrown,Bituminous F-C Siltstone,smooth
+1955.765,1956.050,tan,Bituminous F-M Siltstone,smooth
+1956.060,1956.239,sandybrown,Bituminous F-C Siltstone,smooth
+1956.250,1956.957,tan,Bituminous F-M Siltstone,smooth
+1956.967,1957.442,sandybrown,Bituminous F-C Siltstone,smooth
+1957.453,1957.621,tan,Bituminous F-M Siltstone,smooth
+1957.632,1957.906,sandybrown,Bituminous F-C Siltstone,smooth
+1957.917,1958.075,tan,Bituminous F-M Siltstone,smooth
+1958.085,1958.339,sandybrown,Bituminous F-C Siltstone,smooth
+1958.349,1958.729,tan,Bituminous F-M Siltstone,smooth
+1958.739,1958.940,sandybrown,Bituminous F-C Siltstone,smooth
+1958.950,1959.161,tan,Bituminous F-M Siltstone,smooth
+1959.172,1959.383,sandybrown,Bituminous F-C Siltstone,smooth
+1959.393,1959.562,tan,Bituminous F-M Siltstone,smooth
+1959.573,1960.374,sandybrown,Bituminous F-C Siltstone,smooth
+1960.385,1960.585,tan,Bituminous F-M Siltstone,smooth
+1960.596,1960.786,sandybrown,Bituminous F-C Siltstone,smooth
+1960.796,1961.018,tan,Bituminous F-M Siltstone,smooth
+1961.028,1961.208,sandybrown,Bituminous F-C Siltstone,smooth
+1961.218,1961.387,tan,Bituminous F-M Siltstone,smooth
+1961.398,1961.588,sandybrown,Bituminous F-C Siltstone,smooth
+1961.598,1961.767,tan,Bituminous F-M Siltstone,smooth
+1961.777,1961.988,sandybrown,Bituminous F-C Siltstone,smooth
+1961.999,1962.157,tan,Bituminous F-M Siltstone,rough
+1962.168,1962.421,sandybrown,Bituminous F-C Siltstone,smooth
+1962.431,1962.653,tan,Bituminous F-M Siltstone,smooth
+1962.664,1962.885,sandybrown,Bituminous F-C Siltstone,smooth
+1962.896,1963.138,tan,Bituminous F-M Siltstone,smooth
+1963.149,1963.360,sandybrown,Bituminous F-C Siltstone,smooth
+1963.370,1963.571,tan,Bituminous F-M Siltstone,smooth
+1963.581,1963.813,sandybrown,Bituminous F-C Siltstone,smooth
+1963.824,1964.014,tan,Bituminous F-M Siltstone,smooth
+1964.024,1964.668,sandybrown,Bituminous F-C Siltstone,smooth
+1964.678,1964.826,tan,Bituminous F-M Siltstone,smooth
+1964.836,1964.953,sandybrown,Bituminous F-C Siltstone,smooth
+1964.963,1965.585,tan,Bituminous F-M Siltstone,smooth
+1965.596,1966.577,sandybrown,Bituminous F-C Siltstone,smooth
+1966.588,1966.999,tan,Bituminous F-M Siltstone,smooth
+1967.009,1967.284,sandybrown,Bituminous F-C Siltstone,smooth
+1967.294,1967.463,tan,Bituminous F-M Siltstone,smooth
+1967.474,1967.632,sandybrown,Bituminous F-C Siltstone,smooth
+1967.642,1968.254,tan,Bituminous F-M Siltstone,smooth
+1968.265,1968.412,sandybrown,Bituminous F-C Siltstone,smooth
+1968.423,1968.602,tan,Bituminous F-M Siltstone,smooth
+1968.613,1968.834,sandybrown,Bituminous F-C Siltstone,smooth
+1968.845,1968.982,tan,Bituminous F-M Siltstone,smooth
+1968.993,1969.172,sandybrown,Bituminous F-C Siltstone,smooth
+1969.182,1969.362,tan,Bituminous F-M Siltstone,smooth
+1969.372,1969.531,sandybrown,Bituminous F-C Siltstone,smooth
+1969.541,1970.016,tan,Bituminous F-M Siltstone,smooth
+1970.026,1970.364,sandybrown,Bituminous F-C Siltstone,smooth
+1970.374,1970.533,tan,Bituminous F-M Siltstone,smooth
+1970.543,1970.680,sandybrown,Bituminous F-C Siltstone,smooth
+1970.691,1970.839,tan,Bituminous F-M Siltstone,smooth
+1970.849,1970.986,sandybrown,Bituminous F-C Siltstone,smooth
+1970.997,1971.841,tan,Bituminous F-M Siltstone,smooth
+1971.851,1971.988,darkseagreen,Phosphatic - Bituminous Sandy Siltstone to Breccia,smooth
+1971.999,1972.178,tan,Bituminous F-M Siltstone,smooth
+1972.189,1972.294,darkseagreen,Phosphatic - Bituminous Sandy Siltstone to Breccia,smooth
+1972.305,1972.474,tan,Bituminous F-M Siltstone,smooth
+1972.484,1972.642,darkseagreen,Phosphatic - Bituminous Sandy Siltstone to Breccia,rough
+1972.653,1973.550,sandybrown,Bituminous F-C Siltstone,smooth
+1973.560,1973.729,tan,Bituminous F-M Siltstone,smooth
+1973.739,1973.950,sandybrown,Bituminous F-C Siltstone,smooth
+1973.961,1974.130,tan,Bituminous F-M Siltstone,smooth
+1974.140,1974.330,sandybrown,Bituminous F-C Siltstone,smooth
+1974.341,1974.531,tan,Bituminous F-M Siltstone,smooth
+1974.541,1974.889,sandybrown,Bituminous F-C Siltstone,smooth
+1974.900,1975.058,tan,Bituminous F-M Siltstone,smooth
+1975.069,1975.322,sandybrown,Bituminous F-C Siltstone,smooth
+1975.332,1975.480,tan,Bituminous F-M Siltstone,smooth
+1975.491,1975.680,sandybrown,Bituminous F-C Siltstone,smooth
+1975.691,1975.839,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+1975.849,1975.997,tan,Bituminous F-M Siltstone,smooth
+1976.007,1976.155,sandybrown,Bituminous F-C Siltstone,smooth
+1976.166,1976.303,tan,Bituminous F-M Siltstone,smooth
+1976.313,1976.588,sandybrown,Bituminous F-C Siltstone,smooth
+1976.598,1976.735,tan,Bituminous F-M Siltstone,smooth
+1976.746,1976.904,sandybrown,Bituminous F-C Siltstone,smooth
+1976.915,1977.083,tan,Bituminous F-M Siltstone,smooth
+1977.094,1977.231,sandybrown,Bituminous F-C Siltstone,smooth
+1977.242,1977.431,tan,Bituminous F-M Siltstone,smooth
+1977.442,1977.632,sandybrown,Bituminous F-C Siltstone,smooth
+1977.642,1977.874,tan,Bituminous F-M Siltstone,smooth
+1977.885,1978.022,sandybrown,Bituminous F-C Siltstone,smooth
+1978.033,1978.244,tan,Bituminous F-M Siltstone,smooth
+1978.254,1978.402,sandybrown,Bituminous F-C Siltstone,smooth
+1978.412,1978.634,tan,Bituminous F-M Siltstone,smooth
+1978.645,1978.792,sandybrown,Bituminous F-C Siltstone,smooth
+1978.803,1979.035,tan,Bituminous F-M Siltstone,smooth
+1979.045,1979.204,sandybrown,Bituminous F-C Siltstone,smooth
+1979.214,1979.467,tan,Bituminous F-M Siltstone,smooth
+1979.478,1979.636,sandybrown,Bituminous F-C Siltstone,smooth
+1979.647,1979.836,tan,Bituminous F-M Siltstone,smooth
+1979.847,1980.005,sandybrown,Bituminous F-C Siltstone,smooth
+1980.016,1980.153,tan,Bituminous F-M Siltstone,smooth
+1980.164,1980.332,sandybrown,Bituminous F-C Siltstone,smooth
+1980.343,1980.564,tan,Bituminous F-M Siltstone,smooth
+1980.575,1980.923,sandybrown,Bituminous F-C Siltstone,smooth
+1980.934,1981.113,tan,Bituminous F-M Siltstone,smooth
+1981.123,1981.366,sandybrown,Bituminous F-C Siltstone,smooth
+1981.377,1981.524,tan,Bituminous F-M Siltstone,smooth
+1981.535,1981.756,sandybrown,Bituminous F-C Siltstone,smooth
+1981.767,1981.936,tan,Bituminous F-M Siltstone,smooth
+1981.946,1982.147,sandybrown,Bituminous F-C Siltstone,smooth
+1982.157,1982.294,tan,Bituminous F-M Siltstone,smooth
+1982.305,1982.495,sandybrown,Bituminous F-C Siltstone,smooth
+1982.505,1982.664,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+1982.674,1982.885,sandybrown,Bituminous F-C Siltstone,smooth
+1982.896,1983.085,tan,Bituminous F-M Siltstone,smooth
+1983.096,1983.307,sandybrown,Bituminous F-C Siltstone,rough
+1983.318,1983.465,tan,Bituminous F-M Siltstone,rough
+1983.476,1983.666,sandybrown,Bituminous F-C Siltstone,smooth
+1983.676,1983.824,tan,Bituminous F-M Siltstone,rough
+1983.834,1984.024,sandybrown,Bituminous F-C Siltstone,smooth
+1984.035,1984.161,tan,Bituminous F-M Siltstone,smooth
+1984.172,1984.372,sandybrown,Bituminous F-C Siltstone,smooth
+1984.383,1985.469,tan,Bituminous F-M Siltstone,smooth
+1985.480,1985.818,sandybrown,Bituminous F-C Siltstone,smooth
+1985.828,1986.123,tan,Bituminous F-M Siltstone,smooth
+1986.134,1986.334,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+1986.345,1986.630,sandybrown,Bituminous F-C Siltstone,smooth
+1986.640,1986.799,tan,Bituminous F-M Siltstone,smooth
+1986.809,1987.020,sandybrown,Bituminous F-C Siltstone,smooth
+1987.031,1987.231,tan,Bituminous F-M Siltstone,smooth
+1987.242,1987.442,sandybrown,Bituminous F-C Siltstone,smooth
+1987.453,1987.611,tan,Bituminous F-M Siltstone,smooth
+1987.621,1987.811,sandybrown,Bituminous F-C Siltstone,smooth
+1987.822,1988.012,tan,Bituminous F-M Siltstone,smooth
+1988.022,1988.233,sandybrown,Bituminous F-C Siltstone,smooth
+1988.244,1988.434,tan,Bituminous F-M Siltstone,smooth
+1988.444,1988.634,sandybrown,Bituminous F-C Siltstone,smooth
+1988.645,1988.813,tan,Bituminous F-M Siltstone,smooth
+1988.824,1988.982,sandybrown,Bituminous F-C Siltstone,smooth
+1988.993,1990.237,tan,Bituminous F-M Siltstone,smooth
+1990.248,1990.332,sandybrown,Bituminous F-C Siltstone,smooth
+1990.343,1990.733,tan,Bituminous F-M Siltstone,smooth
+1990.744,1990.986,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+1990.997,1991.155,tan,Bituminous F-M Siltstone,smooth
+1991.166,1991.377,sandybrown,Bituminous F-C Siltstone,smooth
+1991.387,1991.524,tan,Bituminous F-M Siltstone,rough
+1991.535,1991.788,sandybrown,Bituminous F-C Siltstone,smooth
+1991.799,1992.020,tan,Bituminous F-M Siltstone,smooth
+1992.031,1992.220,sandybrown,Bituminous F-C Siltstone,smooth
+1992.231,1992.421,tan,Bituminous F-M Siltstone,smooth
+1992.431,1992.579,sandybrown,Bituminous F-C Siltstone,smooth
+1992.590,1992.758,tan,Bituminous F-M Siltstone,smooth
+1992.769,1993.001,sandybrown,Bituminous F-C Siltstone,smooth
+1993.012,1993.940,tan,Bituminous F-M Siltstone,rough
+1993.950,1994.182,sandybrown,Bituminous F-C Siltstone,rough
+1994.193,1994.362,tan,Bituminous F-M Siltstone,rough
+1994.372,1994.499,sandybrown,Bituminous F-C Siltstone,rough
+1994.509,1994.720,tan,Bituminous F-M Siltstone,rough
+1994.731,1994.953,sandybrown,Bituminous F-C Siltstone,rough
+1994.963,1995.174,tan,Bituminous F-M Siltstone,smooth
+1995.185,1995.396,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+1995.406,1997.041,tan,Bituminous F-M Siltstone,smooth
+1997.052,1997.347,sandybrown,Bituminous F-C Siltstone,smooth
+1997.358,1997.537,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+1997.547,1997.748,sandybrown,Bituminous F-C Siltstone,smooth
+1997.758,1997.938,tan,Bituminous F-M Siltstone,smooth
+1997.948,1998.096,sandybrown,Bituminous F-C Siltstone,smooth
+1998.107,1998.286,tan,Bituminous F-M Siltstone,smooth
+1998.296,1998.434,sandybrown,Bituminous F-C Siltstone,smooth
+1998.444,1998.718,tan,Bituminous F-M Siltstone,smooth
+1998.729,1998.887,sandybrown,Bituminous F-C Siltstone,smooth
+1998.898,1999.151,tan,Bituminous F-M Siltstone,smooth
+1999.161,1999.320,sandybrown,Bituminous F-C Siltstone,smooth
+1999.330,1999.562,tan,Bituminous F-M Siltstone,smooth
+1999.573,1999.742,sandybrown,Bituminous F-C Siltstone,smooth
+1999.752,2000.332,tan,Bituminous F-M Siltstone,smooth
+2000.343,2000.501,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+2000.512,2001.682,tan,Bituminous F-M Siltstone,smooth
+2001.693,2001.957,sandybrown,Bituminous F-C Siltstone,smooth
+2001.967,2002.104,tan,Bituminous F-M Siltstone,smooth
+2002.115,2002.305,sandybrown,Bituminous F-C Siltstone,smooth
+2002.315,2005.628,tan,Bituminous F-M Siltstone,smooth
+2005.638,2005.754,sandybrown,Bituminous F-C Siltstone,smooth
+2005.765,2007.695,tan,Bituminous F-M Siltstone,smooth
+2007.706,2008.697,darkseagreen,Phosphatic - Bituminous Sandy Siltstone to Breccia,smooth
+2008.708,2011.166,tan,Bituminous F-M Siltstone,smooth
+2011.176,2011.334,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+2011.345,2011.482,tan,Bituminous F-M Siltstone,smooth
+2011.493,2011.820,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+2011.830,2012.621,tan,Bituminous F-M Siltstone,smooth
+2012.632,2013.043,sandybrown,Bituminous F-C Siltstone,smooth
+2013.054,2013.223,tan,Bituminous F-M Siltstone,smooth
+2013.233,2013.402,sandybrown,Bituminous F-C Siltstone,smooth
+2013.412,2013.602,tan,Bituminous F-M Siltstone,smooth
+2013.613,2013.771,sandybrown,Bituminous F-C Siltstone,rough
+2013.782,2014.109,tan,Bituminous F-M Siltstone,rough
+2014.119,2014.320,darkseagreen,Phosphatic - Bituminous Sandy Siltstone to Breccia,smooth
+2014.330,2014.984,tan,Bituminous F-M Siltstone,rough
+2014.995,2015.575,plum,Calcareous - Calcispheric Dolosiltstone,rough
+2015.585,2016.313,tan,Bituminous F-M Siltstone,smooth
+2016.324,2016.461,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+2016.472,2017.484,tan,Bituminous F-M Siltstone,smooth
+2017.495,2017.780,darkseagreen,Phosphatic - Bituminous Sandy Siltstone to Breccia,rough
+2017.790,2018.117,tan,Bituminous F-M Siltstone,smooth
+2018.128,2018.339,sandybrown,Bituminous F-C Siltstone,rough
+2018.349,2019.393,tan,Bituminous F-M Siltstone,smooth
+2019.404,2019.805,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2019.815,2023.729,tan,Bituminous F-M Siltstone,rough
+2023.739,2024.098,plum,Calcareous - Calcispheric Dolosiltstone,rough
+2024.109,2024.699,tan,Bituminous F-M Siltstone,smooth
+2024.710,2024.836,skyblue,Laminated Bedded Resedimented Bioclasts,rough
+2024.847,2025.174,tan,Bituminous F-M Siltstone,rough
+2025.185,2025.522,plum,Calcareous - Calcispheric Dolosiltstone,rough
+2025.533,2025.638,tan,Bituminous F-M Siltstone,smooth
+2025.649,2025.818,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2025.828,2026.039,sandybrown,Bituminous F-C Siltstone,smooth
+2026.050,2026.208,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2026.218,2026.440,sandybrown,Bituminous F-C Siltstone,smooth
+2026.450,2026.588,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2026.598,2026.767,tan,Bituminous F-M Siltstone,smooth
+2026.777,2026.936,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2026.946,2027.126,sandybrown,Bituminous F-C Siltstone,smooth
+2027.136,2027.315,tan,Bituminous F-M Siltstone,smooth
+2027.326,2027.516,sandybrown,Bituminous F-C Siltstone,smooth
+2027.526,2027.737,tan,Bituminous F-M Siltstone,smooth
+2027.748,2027.980,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+2027.991,2028.191,tan,Bituminous F-M Siltstone,smooth
+2028.201,2028.391,sandybrown,Bituminous F-C Siltstone,smooth
+2028.402,2028.623,tan,Bituminous F-M Siltstone,smooth
+2028.634,2028.750,sandybrown,Bituminous F-C Siltstone,smooth
+2028.761,2028.929,tan,Bituminous F-M Siltstone,smooth
+2028.940,2029.225,skyblue,Laminated Bedded Resedimented Bioclasts,rough
+2029.235,2029.404,tan,Bituminous F-M Siltstone,smooth
+2029.415,2029.594,sandybrown,Bituminous F-C Siltstone,smooth
+2029.604,2029.794,tan,Bituminous F-M Siltstone,smooth
+2029.805,2030.005,sandybrown,Bituminous F-C Siltstone,smooth
+2030.016,2030.216,tan,Bituminous F-M Siltstone,smooth
+2030.227,2030.438,sandybrown,Bituminous F-C Siltstone,smooth
+2030.448,2030.607,tan,Bituminous F-M Siltstone,smooth
+2030.617,2030.818,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2030.828,2030.997,sandybrown,Bituminous F-C Siltstone,smooth
+2031.007,2031.145,tan,Bituminous F-M Siltstone,smooth
+2031.155,2031.387,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2031.398,2031.630,sandybrown,Bituminous F-C Siltstone,smooth
+2031.640,2031.809,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2031.820,2031.999,tan,Bituminous F-M Siltstone,smooth
+2032.009,2032.115,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2032.126,2032.431,sandybrown,Bituminous F-C Siltstone,smooth
+2032.442,2032.621,tan,Bituminous F-M Siltstone,smooth
+2032.632,2032.769,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2032.780,2032.959,tan,Bituminous F-M Siltstone,smooth
+2032.969,2033.233,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2033.244,2033.465,tan,Bituminous F-M Siltstone,smooth
+2033.476,2033.623,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2033.634,2033.961,sandybrown,Bituminous F-C Siltstone,smooth
+2033.972,2034.172,tan,Bituminous F-M Siltstone,smooth
+2034.182,2034.299,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2034.309,2034.594,sandybrown,Bituminous F-C Siltstone,smooth
+2034.604,2034.900,tan,Bituminous F-M Siltstone,smooth
+2034.910,2035.090,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2035.100,2035.343,sandybrown,Bituminous F-C Siltstone,smooth
+2035.353,2035.501,tan,Bituminous F-M Siltstone,smooth
+2035.512,2035.881,sandybrown,Bituminous F-C Siltstone,smooth
+2035.891,2036.060,tan,Bituminous F-M Siltstone,smooth
+2036.071,2036.250,sandybrown,Bituminous F-C Siltstone,smooth
+2036.261,2036.419,tan,Bituminous F-M Siltstone,smooth
+2036.429,2036.566,sandybrown,Bituminous F-C Siltstone,smooth
+2036.577,2036.746,tan,Bituminous F-M Siltstone,smooth
+2036.756,2036.936,sandybrown,Bituminous F-C Siltstone,smooth
+2036.946,2037.126,tan,Bituminous F-M Siltstone,smooth
+2037.136,2037.252,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2037.263,2037.453,sandybrown,Bituminous F-C Siltstone,smooth
+2037.463,2037.653,tan,Bituminous F-M Siltstone,smooth
+2037.664,2038.001,sandybrown,Bituminous F-C Siltstone,smooth
+2038.012,2038.159,tan,Bituminous F-M Siltstone,smooth
+2038.170,2038.318,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2038.328,2038.518,tan,Bituminous F-M Siltstone,smooth
+2038.528,2038.666,sandybrown,Bituminous F-C Siltstone,smooth
+2038.676,2039.668,tan,Bituminous F-M Siltstone,smooth
+2039.678,2039.931,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2039.942,2040.174,sandybrown,Bituminous F-C Siltstone,smooth
+2040.185,2040.343,skyblue,Laminated Bedded Resedimented Bioclasts,rough
+2040.353,2040.828,sandybrown,Bituminous F-C Siltstone,smooth
+2040.839,2040.986,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2040.997,2041.250,tan,Bituminous F-M Siltstone,smooth
+2041.261,2041.450,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2041.461,2041.682,tan,Bituminous F-M Siltstone,smooth
+2041.693,2041.841,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2041.851,2042.073,tan,Bituminous F-M Siltstone,smooth
+2042.083,2042.368,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2042.379,2043.033,tan,Bituminous F-M Siltstone,smooth
+2043.043,2043.201,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2043.212,2043.339,tan,Bituminous F-M Siltstone,smooth
+2043.349,2043.528,sandybrown,Bituminous F-C Siltstone,smooth
+2043.539,2043.697,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2043.708,2044.024,tan,Bituminous F-M Siltstone,smooth
+2044.035,2044.299,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2044.309,2044.710,tan,Bituminous F-M Siltstone,smooth
+2044.720,2045.005,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2045.016,2045.343,tan,Bituminous F-M Siltstone,smooth
+2045.353,2045.786,skyblue,Laminated Bedded Resedimented Bioclasts,rough
+2045.796,2046.102,tan,Bituminous F-M Siltstone,smooth
+2046.113,2046.292,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2046.303,2047.041,tan,Bituminous F-M Siltstone,smooth
+2047.052,2047.252,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2047.263,2047.463,tan,Bituminous F-M Siltstone,smooth
+2047.474,2047.653,sandybrown,Bituminous F-C Siltstone,smooth
+2047.664,2047.991,tan,Bituminous F-M Siltstone,smooth
+2048.001,2048.201,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2048.212,2048.381,tan,Bituminous F-M Siltstone,smooth
+2048.391,2048.824,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2048.834,2049.710,tan,Bituminous F-M Siltstone,smooth
+2049.720,2049.931,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+2049.942,2050.807,tan,Bituminous F-M Siltstone,smooth
+2050.818,2050.934,sandybrown,Bituminous F-C Siltstone,smooth
+2050.944,2051.060,tan,Bituminous F-M Siltstone,smooth
+2051.071,2051.166,sandybrown,Bituminous F-C Siltstone,smooth
+2051.176,2051.355,tan,Bituminous F-M Siltstone,smooth
+2051.366,2051.514,sandybrown,Bituminous F-C Siltstone,smooth
+2051.524,2052.284,tan,Bituminous F-M Siltstone,smooth
+2052.294,2052.421,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2052.431,2052.526,tan,Bituminous F-M Siltstone,smooth
+2052.537,2052.653,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2052.664,2053.212,tan,Bituminous F-M Siltstone,smooth
+2053.223,2053.750,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2053.761,2053.950,tan,Bituminous F-M Siltstone,smooth
+2053.961,2054.172,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2054.182,2054.351,tan,Bituminous F-M Siltstone,smooth
+2054.362,2054.626,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2054.636,2055.069,tan,Bituminous F-M Siltstone,smooth
+2055.079,2055.290,skyblue,Laminated Bedded Resedimented Bioclasts,rough
+2055.301,2055.491,tan,Bituminous F-M Siltstone,smooth
+2055.501,2055.691,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2055.701,2055.902,tan,Bituminous F-M Siltstone,smooth
+2055.912,2056.123,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2056.134,2056.355,tan,Bituminous F-M Siltstone,smooth
+2056.366,2056.672,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2056.682,2056.788,tan,Bituminous F-M Siltstone,smooth
+2056.799,2056.978,skyblue,Laminated Bedded Resedimented Bioclasts,rough
+2056.988,2057.220,tan,Bituminous F-M Siltstone,smooth
+2057.231,2057.463,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2057.474,2057.758,tan,Bituminous F-M Siltstone,smooth
+2057.769,2057.917,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2057.927,2058.233,tan,Bituminous F-M Siltstone,smooth
+2058.244,2058.412,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2058.423,2058.792,tan,Bituminous F-M Siltstone,smooth
+2058.803,2059.109,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2059.119,2059.330,tan,Bituminous F-M Siltstone,smooth
+2059.341,2059.520,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2059.531,2059.773,tan,Bituminous F-M Siltstone,smooth
+2059.784,2059.984,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2059.995,2060.248,tan,Bituminous F-M Siltstone,smooth
+2060.258,2060.417,sandybrown,Bituminous F-C Siltstone,smooth
+2060.427,2060.670,tan,Bituminous F-M Siltstone,smooth
+2060.680,2060.860,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2060.870,2061.166,tan,Bituminous F-M Siltstone,smooth
+2061.176,2061.355,skyblue,Laminated Bedded Resedimented Bioclasts,rough
+2061.366,2061.609,sandybrown,Bituminous F-C Siltstone,smooth
+2061.619,2061.767,tan,Bituminous F-M Siltstone,smooth
+2061.777,2061.925,sandybrown,Bituminous F-C Siltstone,smooth
+2061.936,2062.104,tan,Bituminous F-M Siltstone,smooth
+2062.115,2062.590,sandybrown,Bituminous F-C Siltstone,smooth
+2062.600,2062.769,tan,Bituminous F-M Siltstone,smooth
+2062.780,2062.927,sandybrown,Bituminous F-C Siltstone,smooth
+2062.938,2064.109,tan,Bituminous F-M Siltstone,smooth
+2064.119,2064.573,sandybrown,Bituminous F-C Siltstone,smooth
+2064.583,2064.921,tan,Bituminous F-M Siltstone,smooth
+2064.931,2065.100,sandybrown,Bituminous F-C Siltstone,smooth
+2065.111,2065.290,tan,Bituminous F-M Siltstone,smooth
+2065.301,2065.491,sandybrown,Bituminous F-C Siltstone,smooth
+2065.501,2065.680,tan,Bituminous F-M Siltstone,smooth
+2065.691,2065.891,sandybrown,Bituminous F-C Siltstone,smooth
+2065.902,2066.092,tan,Bituminous F-M Siltstone,smooth
+2066.102,2066.303,sandybrown,Bituminous F-C Siltstone,smooth
+2066.313,2066.503,tan,Bituminous F-M Siltstone,smooth
+2066.514,2066.735,sandybrown,Bituminous F-C Siltstone,smooth
+2066.746,2066.946,tan,Bituminous F-M Siltstone,smooth
+2066.957,2067.400,sandybrown,Bituminous F-C Siltstone,smooth
+2067.410,2067.537,tan,Bituminous F-M Siltstone,smooth
+2067.547,2067.674,sandybrown,Bituminous F-C Siltstone,smooth
+2067.685,2067.853,tan,Bituminous F-M Siltstone,smooth
+2067.864,2068.043,sandybrown,Bituminous F-C Siltstone,smooth
+2068.054,2068.275,tan,Bituminous F-M Siltstone,smooth
+2068.286,2068.486,sandybrown,Bituminous F-C Siltstone,smooth
+2068.497,2068.739,tan,Bituminous F-M Siltstone,smooth
+2068.750,2068.929,sandybrown,Bituminous F-C Siltstone,smooth
+2068.940,2069.204,tan,Bituminous F-M Siltstone,smooth
+2069.214,2069.404,sandybrown,Bituminous F-C Siltstone,smooth
+2069.415,2069.657,tan,Bituminous F-M Siltstone,smooth
+2069.668,2070.047,sandybrown,Bituminous F-C Siltstone,smooth
+2070.058,2070.195,tan,Bituminous F-M Siltstone,smooth
+2070.206,2070.343,sandybrown,Bituminous F-C Siltstone,smooth
+2070.353,2070.543,tan,Bituminous F-M Siltstone,smooth
+2070.554,2070.765,sandybrown,Bituminous F-C Siltstone,smooth
+2070.775,2071.007,tan,Bituminous F-M Siltstone,smooth
+2071.018,2071.271,sandybrown,Bituminous F-C Siltstone,smooth
+2071.282,2071.493,tan,Bituminous F-M Siltstone,smooth
+2071.503,2071.661,sandybrown,Bituminous F-C Siltstone,smooth
+2071.672,2071.925,tan,Bituminous F-M Siltstone,smooth
+2071.936,2072.104,sandybrown,Bituminous F-C Siltstone,smooth
+2072.115,2072.294,tan,Bituminous F-M Siltstone,smooth
+2072.305,2072.453,sandybrown,Bituminous F-C Siltstone,smooth
+2072.463,2072.664,tan,Bituminous F-M Siltstone,smooth
+2072.674,2072.832,sandybrown,Bituminous F-C Siltstone,smooth
+2072.843,2073.022,tan,Bituminous F-M Siltstone,smooth
+2073.033,2073.233,sandybrown,Bituminous F-C Siltstone,smooth
+2073.244,2073.444,tan,Bituminous F-M Siltstone,smooth
+2073.455,2073.592,sandybrown,Bituminous F-C Siltstone,smooth
+2073.602,2073.813,tan,Bituminous F-M Siltstone,smooth
+2073.824,2073.982,sandybrown,Bituminous F-C Siltstone,smooth
+2073.993,2074.182,tan,Bituminous F-M Siltstone,smooth
+2074.193,2074.457,sandybrown,Bituminous F-C Siltstone,smooth
+2074.467,2074.594,tan,Bituminous F-M Siltstone,smooth
+2074.604,2074.752,sandybrown,Bituminous F-C Siltstone,smooth
+2074.763,2074.921,tan,Bituminous F-M Siltstone,smooth
+2074.931,2075.100,sandybrown,Bituminous F-C Siltstone,smooth
+2075.111,2076.398,tan,Bituminous F-M Siltstone,smooth
+2076.408,2076.735,sandybrown,Bituminous F-C Siltstone,smooth
+2076.746,2077.147,tan,Bituminous F-M Siltstone,smooth
+2077.157,2077.284,sandybrown,Bituminous F-C Siltstone,smooth
+2077.294,2077.474,tan,Bituminous F-M Siltstone,smooth
+2077.484,2077.674,sandybrown,Bituminous F-C Siltstone,smooth
+2077.685,2077.896,tan,Bituminous F-M Siltstone,smooth
+2077.906,2078.096,sandybrown,Bituminous F-C Siltstone,smooth
+2078.107,2078.307,tan,Bituminous F-M Siltstone,smooth
+2078.318,2078.623,sandybrown,Bituminous F-C Siltstone,smooth
+2078.634,2078.855,tan,Bituminous F-M Siltstone,smooth
+2078.866,2079.003,sandybrown,Bituminous F-C Siltstone,smooth
+2079.014,2079.214,tan,Bituminous F-M Siltstone,smooth
+2079.225,2079.446,sandybrown,Bituminous F-C Siltstone,smooth
+2079.457,2083.718,tan,Bituminous F-M Siltstone,smooth
+2083.729,2083.898,sandybrown,Bituminous F-C Siltstone,smooth
+2083.908,2084.056,tan,Bituminous F-M Siltstone,smooth
+2084.066,2084.235,sandybrown,Bituminous F-C Siltstone,smooth
+2084.246,2084.446,tan,Bituminous F-M Siltstone,smooth
+2084.457,2084.636,sandybrown,Bituminous F-C Siltstone,smooth
+2084.647,2084.868,tan,Bituminous F-M Siltstone,smooth
+2084.879,2085.037,sandybrown,Bituminous F-C Siltstone,smooth
+2085.047,2085.185,tan,Bituminous F-M Siltstone,smooth
+2085.195,2085.385,sandybrown,Bituminous F-C Siltstone,smooth
+2085.396,2088.444,tan,Bituminous F-M Siltstone,smooth
+2088.455,2088.550,sandybrown,Bituminous F-C Siltstone,smooth
+2088.560,2088.676,tan,Bituminous F-M Siltstone,smooth
+2088.687,2088.824,sandybrown,Bituminous F-C Siltstone,smooth
+2088.834,2102.147,tan,Bituminous F-M Siltstone,smooth
+2102.157,2102.336,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+2102.347,2105.047,tan,Bituminous F-M Siltstone,smooth
+2105.058,2105.332,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+2105.343,2105.501,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2105.512,2105.786,tan,Bituminous F-M Siltstone,smooth
+2105.796,2105.944,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2105.955,2106.176,tan,Bituminous F-M Siltstone,smooth
+2106.187,2106.334,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2106.345,2106.503,tan,Bituminous F-M Siltstone,smooth
+2106.514,2106.672,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2106.682,2107.062,tan,Bituminous F-M Siltstone,smooth
+2107.073,2107.315,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+2107.326,2107.748,tan,Bituminous F-M Siltstone,smooth
+2107.758,2108.085,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2108.096,2108.497,tan,Bituminous F-M Siltstone,rough
+2108.507,2108.824,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2108.834,2109.035,tan,Bituminous F-M Siltstone,smooth
+2109.045,2109.225,sandybrown,Bituminous F-C Siltstone,smooth
+2109.235,2109.446,tan,Bituminous F-M Siltstone,smooth
+2109.457,2109.626,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2109.636,2109.805,tan,Bituminous F-M Siltstone,smooth
+2109.815,2110.258,sandybrown,Bituminous F-C Siltstone,smooth
+2110.269,2110.543,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2110.554,2110.701,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+2110.712,2110.976,sandybrown,Bituminous F-C Siltstone,smooth
+2110.986,2111.566,tan,Bituminous F-M Siltstone,smooth
+2111.577,2111.735,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+2111.746,2111.883,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2111.893,2112.199,tan,Bituminous F-M Siltstone,smooth
+2112.210,2112.379,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2112.389,2112.695,tan,Bituminous F-M Siltstone,smooth
+2112.706,2112.874,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2112.885,2113.275,tan,Bituminous F-M Siltstone,smooth
+2113.286,2113.898,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2113.908,2114.372,tan,Bituminous F-M Siltstone,smooth
+2114.383,2114.531,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2114.541,2114.942,tan,Bituminous F-M Siltstone,smooth
+2114.953,2115.121,skyblue,Laminated Bedded Resedimented Bioclasts,smooth
+2115.132,2118.834,tan,Bituminous F-M Siltstone,smooth
+2118.845,2119.014,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+2119.024,2119.256,tan,Bituminous F-M Siltstone,smooth
+2119.267,2119.383,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+2119.393,2119.562,tan,Bituminous F-M Siltstone,smooth
+2119.573,2119.710,khaki,Sandy F-C Siltstone to Silty VF Sandstone,rough
+2119.720,2122.400,tan,Bituminous F-M Siltstone,smooth
+2122.410,2122.569,khaki,Sandy F-C Siltstone to Silty VF Sandstone,rough
+2122.579,2123.349,tan,Bituminous F-M Siltstone,smooth
+2123.360,2123.528,sandybrown,Bituminous F-C Siltstone,smooth
+2123.539,2123.687,khaki,Sandy F-C Siltstone to Silty VF Sandstone,rough
+2123.697,2124.668,tan,Bituminous F-M Siltstone,smooth
+2124.678,2124.868,sandybrown,Bituminous F-C Siltstone,smooth
+2124.879,2125.438,tan,Bituminous F-M Siltstone,smooth
+2125.448,2125.849,sandybrown,Bituminous F-C Siltstone,smooth
+2125.860,2126.619,tan,Bituminous F-M Siltstone,rough
+2126.630,2126.893,sandybrown,Bituminous F-C Siltstone,rough
+2126.904,2127.801,tan,Bituminous F-M Siltstone,smooth
+2127.811,2127.938,sandybrown,Bituminous F-C Siltstone,smooth
+2127.948,2128.455,tan,Bituminous F-M Siltstone,smooth
+2128.465,2128.623,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+2128.634,2128.782,sandybrown,Bituminous F-C Siltstone,smooth
+2128.792,2128.908,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+2128.919,2129.130,sandybrown,Bituminous F-C Siltstone,smooth
+2129.140,2129.256,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+2129.267,2129.457,sandybrown,Bituminous F-C Siltstone,smooth
+2129.467,2129.615,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+2129.626,2130.069,tan,Bituminous F-M Siltstone,smooth
+2130.079,2130.248,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+2130.258,2131.387,tan,Bituminous F-M Siltstone,smooth
+2131.398,2131.577,sandybrown,Bituminous F-C Siltstone,rough
+2131.588,2132.157,tan,Bituminous F-M Siltstone,smooth
+2132.168,2132.284,sandybrown,Bituminous F-C Siltstone,smooth
+2132.294,2132.706,tan,Bituminous F-M Siltstone,smooth
+2132.716,2132.896,sandybrown,Bituminous F-C Siltstone,smooth
+2132.906,2133.634,tan,Bituminous F-M Siltstone,smooth
+2133.645,2134.014,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+2134.024,2134.151,tan,Bituminous F-M Siltstone,smooth
+2134.161,2134.299,khaki,Sandy F-C Siltstone to Silty VF Sandstone,smooth
+2134.309,2134.636,tan,Bituminous F-M Siltstone,smooth
+2134.647,2134.868,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+2134.879,2135.047,tan,Bituminous F-M Siltstone,smooth
+2135.058,2135.237,plum,Calcareous - Calcispheric Dolosiltstone,smooth
+2135.248,2135.438,tan,Bituminous F-M Siltstone,smooth
+2135.448,2135.617,sandybrown,Bituminous F-C Siltstone,smooth
+2135.628,2135.807,tan,Bituminous F-M Siltstone,smooth
+2135.818,2135.986,sandybrown,Bituminous F-C Siltstone,smooth
