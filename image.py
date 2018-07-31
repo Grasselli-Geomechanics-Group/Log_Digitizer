@@ -13,6 +13,8 @@ import numpy as np
 from scipy import spatial
 from collections import OrderedDict
 
+## Where will this change.
+
 locations = {'Name:' : [475, 734], 'Well Location:' : [100, 748] , 'Fm/Strat. Unit:' : [308, 734], 'Date:' : [469, 706]}
 
 '''
