@@ -49,12 +49,14 @@ from pdfminer.layout import LAParams
 from pdfminer.converter import PDFPageAggregator
 import pdfminer
 import time
+import cv2
 import numpy as np
 from scipy import spatial
 from collections import OrderedDict
 
 
 locations = {'Name:' : [475, 734], 'Well Location:' : [100, 748] , 'Fm/Strat. Unit:' : [308, 734], 'Date:' : [469, 706]}
+env_list = ['H', 'O', 'OTD', 'OTP', 'T. Lag', 'Ramp', 'Distal Ramp']
 
 
 '''
@@ -136,7 +138,7 @@ def update_page_text_hash (h, lt_obj, pct=0.2):
         h[(x0,x1)] = [to_bytestring(lt_obj.get_text())]
     return h
 
-def parse_obj(lt_objs, y_loc=610):
+def parse_obj(lt_objs, y_loc):
     coord, corel = [], {}
     depths = {}
     # loop over the object list
@@ -190,13 +192,81 @@ def parse_obj(lt_objs, y_loc=610):
     m, c = np.polyfit(x, y, 1)
     print("Coeff : %.3f x + %.3f" % (m, c))
 
-
+    texts = {}
     for obj in lt_objs:
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
             if int(obj.bbox[0]) in range(524, 535) and int(obj.bbox[1]) < y_loc:
+                # text, location = "%.3f, %s" % (m * obj.bbox[1] + c, obj.get_text().replace('\n', '_'))
                 print("%.3f, %s" % (m * obj.bbox[1] + c, obj.get_text().replace('\n', '_')))
+                # d = m * obj.bbox[1] + c
+                texts[m * obj.bbox[1] + c] = obj.get_text().replace('\n', '_')
                 # print(obj.bbox[1], obj.bbox[1] / ratio, obj.get_text().replace('\n', '_'))
 
+    # for k,v in texts.items():
+    #     print(k,v)
+
+    split_texts, deleted_keys = {}, []
+    for key, v in list(texts.items()): # In Python 3.x, use list(data.items()) instead of data.items().
+        if v.count("_") > 1 and v not in ["Distal_Ramp_"]:
+            print("Needs to be split - %s" % v)
+            underscore_list = v.split("_")
+            # print(len(underscore_list))
+            underscore_list.pop()
+            # print(len(underscore_list))
+            del texts[key]
+            deleted_keys.append(key)
+            for loc, i in enumerate(underscore_list):
+                # print(len(underscore_list) - 1 - loc)
+                delta = (len(underscore_list) - 1 - loc) * (m * (16.3))
+                # print(delta)
+                # print(key + delta, i)
+                texts[key + delta] = i
+        else:
+            if v.endswith('_'):
+                v = v[:-1]
+                texts[key] = v.replace('_', ' ')
+            else:
+                texts[key] = v.replace('_', ' ')
+
+    for k,v in texts.items():
+        if v in env_list:
+            print("Match %s - %s" % (k, v))
+        elif '/' in v:
+            print('Two ENV? %s - %s' % (k, v))
+            a = v.split('/')
+            print(a)
+            for i in a:
+                if i in env_list:
+                    print("SUB - Match %s - %s" % (k, i))
+                else:
+                    print('PLEASE CHECK! %s' % i)
+        else:
+            print('UNKNOWN %s - %s' % (k, v))
+        # print(k,v)
+
+    # Identify location of lines
+
+
+
+
+    img = cv2.imread('/home/aly/Desktop/log1/env_log_python_convert.png')
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    edges = cv2.Canny(gray,50,150,apertureSize = 3)
+
+    lines = cv2.HoughLines(edges,1,np.pi/180,200)
+    for rho,theta in lines[0]:
+        a = np.cos(theta)
+        b = np.sin(theta)
+        x0 = a*rho
+        y0 = b*rho
+        x1 = int(x0 + 1000*(-b))
+        y1 = int(y0 + 1000*(a))
+        x2 = int(x0 - 1000*(-b))
+        y2 = int(y0 - 1000*(a))
+
+        cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2)
+
+    cv2.imwrite('houghlines3.jpg',img)
 def check_depth_column(name, list_values):
     if name == 'Depth Values':
         # list_values = list(reversed(list_values))
@@ -219,6 +289,7 @@ for page in PDFPage.create_pages(document):
 
     # read the media box that is the page size as list of 4 integers x0 y0 x1 y1
     print(page.mediabox)
+    _, _, _, tot_len = page.mediabox
 
     # read the page into a layout object
     # receive the LTPage object for this page
@@ -227,4 +298,4 @@ for page in PDFPage.create_pages(document):
     # layout is an LTPage object which may contain child objects like LTTextBox, LTFigure, LTImage, etc.
 
     # extract text from this object
-    parse_obj(layout._objs)
+    parse_obj(layout._objs, tot_len - 180)
