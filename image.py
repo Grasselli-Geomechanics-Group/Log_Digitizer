@@ -54,6 +54,8 @@ from collections import OrderedDict
 from operator import itemgetter
 from itertools import permutations
 from scipy.spatial import distance
+from PIL import Image
+from collections import Counter
 import numpy as np
 import pdfminer
 import time
@@ -61,6 +63,7 @@ import os
 import imutils
 import cv2
 import random
+import webcolors
 
 # Locations of items to look for. Format {"WHAT" : [X coordinate from left of log, Y coordinate from top of log]}
 # locations = {'Name:' : [475, 734], 'Well Location:' : [100, 748] , 'Fm/Strat. Unit:' : [308, 734], 'Date:' : [469, 706]}
@@ -73,6 +76,12 @@ env_list = ['H', 'O', 'OTD', 'OTP', 'T. Lag', 'Ramp', 'Distal Ramp', 'T', 'Temp'
 # Resolutions
 h_resol = 600
 resol = 300
+
+## DICTIONARY
+litho_legend = {"skyblue": "Laminated Bedded Resedimented Bioclasts", "sandybrown": "Bituminous F-C Siltstone", "tan": "Bituminous F-M Siltstone", "khaki": "Sandy F-C Siltstone to Silty VF Sandstone", "darkseagreen": "Phosphatic - Bituminous Sandy Siltstone to Breccia", "plum": "Calcareous - Calcispheric Dolosiltstone"}
+excluded_colors = [(255, 255, 255), (36, 31, 33), (94, 91, 92), (138, 136, 137), (197, 195, 196), (187, 233, 250), (26, 69, 87)]  # exclusion colors from mapping [(White), (Black), (Dim Grey), (Grey), (Silver), (paleturquoise), (darkslategray)]
+
+
 
 '''
 TIMER FUNCTION
@@ -87,6 +96,37 @@ def calc_timer_values(end_time):
         return "\033[1m%d minutes and %d seconds\033[0m." % (minutes, sec)
 
 abs_start = time.time()
+
+
+'''
+DEFINE THE RGB SPECTRUM FOR VISUAL APPEAL
+'''
+
+
+def closest_colour(requested_colour):
+    min_colours = {}
+    for key, name in webcolors.css3_hex_to_names.items():
+        r_c, g_c, b_c = webcolors.hex_to_rgb(key)
+        rd = (r_c - requested_colour[0]) ** 2
+        gd = (g_c - requested_colour[1]) ** 2
+        bd = (b_c - requested_colour[2]) ** 2
+        min_colours[(rd + gd + bd)] = name
+    return min_colours[min(min_colours.keys())]
+
+
+'''
+GET COLOR NAME BASED ON RGB SPECTRUM
+    # - If not found returns nearest color name in spectrum
+'''
+
+
+def get_colour_name(requested_colour):
+    try:
+        closest_name = actual_name = webcolors.rgb_to_name(requested_colour)
+    except ValueError:
+        closest_name = closest_colour(requested_colour)
+        actual_name = None
+    return actual_name, closest_name
 
 '''
 CONVERT BYTES TO STRING
@@ -201,7 +241,8 @@ def parse_obj(lt_objs, y_loc):
     # Equation of linear correlation between
     # OCR depth [a] & point location [b]
     y, x = [a[0], a[-1]], [b[0], b[-1]]
-    m, c = np.polyfit(x, y, 1)
+    coeff(x, y)
+
     print("Processed depth column - OCR Mode.\nCoeff : %.3f x + %.3f." % (m, c))
 
     '''
@@ -269,10 +310,10 @@ def parse_obj(lt_objs, y_loc):
                 else:
                     print(i)
                     print('\033[1;31m PLEASE CHECK! %s \033[0m' % i)
-                    for m in list(comb):
-                        n = ''.join(m)
+                    for k in list(comb):
+                        n = ''.join(k)
                         if i == n:
-                            print('\033[1;31m FOUND! Possible matches %s \033[0m'% ' and '.join(m))
+                            print('\033[1;31m FOUND! Possible matches %s \033[0m'% ' and '.join(k))
                             # env_matches[k] = v
 
         else:
@@ -583,6 +624,153 @@ def recursiveCoord(_coordinateList, threshold):
         return []
 
 '''
+CONVERT PDF TO PNG
+
+- Loads PDF log and returns PNG at specified pixel
+'''
+
+
+def convert(f_name, conv_resol):
+    global fil_name
+    from wand.image import Image
+    from wand.color import Color
+    with Image(filename=f_name, resolution=conv_resol) as img:
+        with Image(width=img.width, height=img.height, background=Color("white")) as bg:
+            bg.composite(img, 0, 0)
+            bg.save(filename=os.path.splitext(f_name)[0] + '_python_convert.png')
+    fil_name = os.path.splitext(f_name)[0] + '_python_convert.png'
+
+
+'''
+INITIALISATION
+
+- Loads Image
+- Obtains all colors (1 pixel wide) at X location
+- Reduces colors to an amount equal to the user defined unique colors
+'''
+
+
+# - Loads Image
+
+def load_image(file_name):
+    global rgb_im, width, height
+    # Image.MAX_IMAGE_PIXELS = None # Override to PIXEL processing limitation. This will tremendously increase processing time.
+    # Load Image
+    im = Image.open(file_name)
+    # Convert to RGB
+    rgb_im = im.convert('RGB')
+    # Obtain image dimension for digitization
+    width, height = im.size
+    # print("" % (width, height))
+    return rgb_im, width, height
+
+
+def ratio():
+    global ratio_px_pt
+    ratio_px_pt = height / tot_len
+    return ratio_px_pt
+
+def coeff(mx, my):
+    global m, c
+    m, c = np.polyfit(mx, my, 1)
+    return m, c
+
+
+
+# - Obtains all colors (1 pixel wide) at X location
+# - Reduces colors to an amount equal to the user defined unique colors
+
+def processing(defined_number_of_unique_colors):
+    convert(pdf_name, resol)  # Convert pdf at the specified resolution
+    load_image(fil_name)  # load image and obtain necessary information
+    ratio()
+    print ("Image Loaded - Dimensions %s px X %s px.\nPixel to Point ratio is: %.2f" % (width, height, ratio_px_pt))
+    color_map = []
+    defined_color_map = []
+    approx_x = 186 * ratio_px_pt
+    # Obtain All Colors (1 Color/pixel) in the Lithological Identification
+    for j in range(0, height):
+        # print (j, rgb_im.getpixel((approx_x, j)))
+        color_map.append(rgb_im.getpixel((approx_x, j)))
+
+    print("\033[92m\033[1mProcessing %s.\033[0m\nNo. of existing colors in Pixel ID %s column is: %s" % ("color column", approx_x, len(set(color_map))))
+    color_map_mode = Counter(color_map)  # counts the frequency of RGB Colors
+    color_map_mode = (sorted(color_map_mode.items(), key=lambda g: g[1], reverse=True))  # Sorts ascending based on frequency
+
+    # Reduces the colors the (X) amount of the max occurring colors
+    # X is user defined
+    mode_counter = 0
+    for i, j in enumerate(color_map_mode):
+        if mode_counter < defined_number_of_unique_colors:
+            for k, color in enumerate(j):
+                if k == 0 and color not in excluded_colors:
+                    defined_color_map.append(color)
+                    mode_counter += 1
+
+    unique_color_map = defined_color_map + excluded_colors  # Colors used in cleanup
+    print("\nLooking up defined and excluded colors. A total of : %s" % len(set(unique_color_map)))
+
+    print("\n\033[1mUser defined No. of Colors\033[0m\n")
+    for i in unique_color_map:
+        # actual_name, closest_name = get_colour_name(i)
+        print("RGB: %s \t- Closest RGB colour name: \033[1m%s\033[0m" % (i, get_colour_name(i)[1]))
+
+    ## MOVE TO NEXT MODULE - IMAGE CLEANUP
+    log_cleanup(color_map, unique_color_map)
+
+
+'''
+LOG CLEANUP
+    # - Remove pixelated color making the log equivalent to the unique set defined
+'''
+
+
+def log_cleanup(color_map, unique_color_map):
+    for i in range(1, len(color_map)):
+        if color_map[i] not in unique_color_map:
+            color_map[i] = color_map[i - 1]
+
+    for i, j in enumerate(color_map):
+        print(m * ((len(color_map) - i) / ratio_px_pt) + c, j, get_colour_name(j)[1])
+
+    # ## MOVE TO NEXT MODULE - REMOVE LINES
+    # remove_black_lines(color_map)
+
+'''
+REMOVE LINES
+
+- Remove black lines (dividers)
+- Splits the pixel thickness of the line and divides it into the upper and lower lithology
+'''
+
+
+def remove_black_lines(color_map):
+    location = []
+    for i in range(0, len(color_map) - 1):
+        if color_map[i] == (36, 31, 33):
+            if color_map[i] == color_map[i + 1]:
+                location.append(i)
+            else:
+                location.append(i)
+                for j, k in enumerate(location):
+                    if k == 0:
+                        color_map[k] = color_map[max(location) + 1]
+                    elif j < (len(location) / 2):
+                        color_map[k] = color_map[min(location) - 1]
+                    else:
+                        color_map[k] = color_map[max(location) + 1]
+                location = []
+
+    for h, k in enumerate(location):
+        color_map[k] = color_map[min(location) - 1]
+
+    color_map.pop()
+    print(m, c)
+    for i, j in enumerate(color_map):
+        print(m * (i / ratio_px_pt) + c, j)
+
+
+'''
 MAIN MODULE
 
 - Returns total time and Error on user termination.
@@ -592,7 +780,9 @@ MAIN MODULE
 if __name__ == "__main__":
     try:
         initial_processing()
-        # cropping_pdf()
+        cropping_pdf()
+        # Load processing module using Lithological Identification parameters
+        processing(len(litho_legend))
         print ("Total Execution time: \033[1m%s\033[0m\n" % calc_timer_values(time.time() - abs_start))
     except KeyboardInterrupt:
         exit("TERMINATED BY USER")
