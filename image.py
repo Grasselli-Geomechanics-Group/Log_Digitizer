@@ -47,12 +47,20 @@ from pdfminer.pdfinterp import PDFPageInterpreter
 from pdfminer.pdfdevice import PDFDevice
 from pdfminer.layout import LAParams
 from pdfminer.converter import PDFPageAggregator
-import pdfminer
-import time
-import cv2
-import numpy as np
+from pdfminer.pdfinterp import resolve1
+from PyPDF2 import PdfFileWriter, PdfFileReader
 from scipy import spatial
 from collections import OrderedDict
+from operator import itemgetter
+from itertools import permutations
+from scipy.spatial import distance
+import numpy as np
+import pdfminer
+import time
+import os
+import imutils
+import cv2
+import random
 
 # Locations of items to look for. Format {"WHAT" : [X coordinate from left of log, Y coordinate from top of log]}
 # locations = {'Name:' : [475, 734], 'Well Location:' : [100, 748] , 'Fm/Strat. Unit:' : [308, 734], 'Date:' : [469, 706]}
@@ -60,8 +68,11 @@ locations = {'Name:' : [475, 56], 'Well Location:' : [100, 42] , 'Fm/Strat. Unit
 
 # Abbreviation of the Dep. Env. / Sedimentary Facies
 # Will display an error if the text recognised in the Env. column is not in this list.
-env_list = ['H', 'O', 'OTD', 'OTP', 'T. Lag', 'Ramp', 'Distal Ramp', 'T', 'Temp', 'OT', 'LS', 'Turb']
+env_list = ['H', 'O', 'OTD', 'OTP', 'T. Lag', 'Ramp', 'Distal Ramp', 'T', 'Temp', 'OT', 'LS', 'Turb', 'Temps']
 
+# Resolutions
+h_resol = 600
+resol = 300
 
 '''
 TIMER FUNCTION
@@ -84,7 +95,6 @@ CONVERT BYTES TO STRING
 '''
 
 
-
 def to_bytestring (s, enc='utf-8'):
     if s:
         if isinstance(s, str):
@@ -92,43 +102,17 @@ def to_bytestring (s, enc='utf-8'):
         else:
             return s.encode(enc)
 
-'''
-INITIALIZING PDF FILE FOR DATA EXTRACTION
-
-- SCRIPT OBTAINED FROM https://stackoverflow.com/questions/22898145/how-to-extract-text-and-text-coordinates-from-a-pdf-file
-'''
-
 # Open a PDF file.
-# fp = open('/home/aly/Desktop/Talisman_c-65-F_Page 1.pdf', 'rb')
-fp = open('/home/aly/Desktop/d_66_I_94_B_16_Continuous_Core.pdf', 'rb')
+# pdf_name = '/home/aly/Desktop/log2/d_66/d_66_I_94_B_16_Continuous_Core.pdf'
+pdf_name = '/home/aly/Desktop/log2/talisman/Talisman c-65-F_Page 1.pdf'
+# pdf_name = 'C:/Users/alica/Desktop/log2/d_66/d_66_I_94_B_16_Continuous_Core.pdf'
+# pdf_name = 'C:/Users/alica/Desktop/log2/talisman/Talisman_c-65-F_Page_1.pdf'
 
-# Create a PDF parser object associated with the file object.
-parser = PDFParser(fp)
+'''
+GLOBAL OPENING OF FILE
+'''
 
-# Create a PDF document object that stores the document structure.
-# Password, if any, for initialization as 2nd parameter
-document = PDFDocument(parser)
-
-# Check if the document allows text extraction. If not, abort.
-if not document.is_extractable:
-    raise PDFTextExtractionNotAllowed
-
-# Create a PDF resource manager object that stores shared resources.
-rsrcmgr = PDFResourceManager()
-
-# Create a PDF device object.
-device = PDFDevice(rsrcmgr)
-
-# BEGIN LAYOUT ANALYSIS
-# Set parameters for analysis.
-laparams = LAParams()
-
-# Create a PDF page aggregator object.
-device = PDFPageAggregator(rsrcmgr, laparams=laparams)
-
-# Create a PDF interpreter object.
-interpreter = PDFPageInterpreter(rsrcmgr, device)
-
+fp = open(pdf_name, 'rb')
 
 def update_page_text_hash (h, lt_obj, pct=0.2):
     """Use the bbox x0,x1 values within pct% to produce lists of associated text within the hash"""
@@ -168,14 +152,16 @@ def parse_obj(lt_objs, y_loc):
     for obj in lt_objs:
         # if it's a textbox, print text and location
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
-            print("%6d, %6d, %6d, %6d, %s" % (obj.bbox[0], obj.bbox[1], obj.bbox[2], obj.bbox[3], obj.get_text().replace('\n', '_')))  # Print all OCR Matches and the bounding box locations.
+            # print("%6d, %6d, %6d, %6d, %s" % (obj.bbox[0], obj.bbox[1], obj.bbox[2], obj.bbox[3], obj.get_text().replace('\n', '_')))  # Print all OCR Matches and the bounding box locations.
             coord.append([obj.bbox[0], obj.bbox[1]])  # List of all X/Y of bounding boxes.
             corel[obj.get_text().replace('\n', '_')] = [obj.bbox[0], obj.bbox[1]]  # Dictionary of {TEXT : [X , Y]}
         # if it's a container, recurse. That is, LTFigure objects are containers for other LT* objects, so recurse through the children
         elif isinstance(obj, pdfminer.layout.LTFigure):
             parse_obj(obj._objs)
 
-    # Run the module
+    print("OCR COMPLETED.")
+
+    # Run the module to obtain scale.
     log_info(coord, corel)
 
     '''
@@ -200,7 +186,7 @@ def parse_obj(lt_objs, y_loc):
     depths = OrderedDict(sorted(depths.items(), key=lambda t: t[0]))
     a, b = [], []
     for key in depths:
-        print("%s: %s" % (key, depths[key]))
+        # print("%s: %s" % (key, depths[key]))
         a.append(depths[key])
         b.append(key)
 
@@ -216,7 +202,7 @@ def parse_obj(lt_objs, y_loc):
     # OCR depth [a] & point location [b]
     y, x = [a[0], a[-1]], [b[0], b[-1]]
     m, c = np.polyfit(x, y, 1)
-    print("Coeff : %.3f x + %.3f" % (m, c))
+    print("Processed depth column - OCR Mode.\nCoeff : %.3f x + %.3f." % (m, c))
 
     '''
     PROCESS // PARSE ENVIRONMENT COLUMN
@@ -236,7 +222,7 @@ def parse_obj(lt_objs, y_loc):
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
             if int(obj.bbox[0]) in range(524, 535) and int(obj.bbox[1]) < y_loc:
                 # text, location = "%.3f, %s" % (m * obj.bbox[1] + c, obj.get_text().replace('\n', '_'))
-                print("%.3f, %s" % (m * obj.bbox[1] + c, obj.get_text().replace('\n', '_')))
+                # print("%.3f, %s" % (m * obj.bbox[1] + c, obj.get_text().replace('\n', '_')))
                 # d = m * obj.bbox[1] + c
                 texts[m * obj.bbox[1] + c] = obj.get_text().replace('\n', '_')
                 # print(obj.bbox[1], obj.bbox[1] / ratio, obj.get_text().replace('\n', '_'))
@@ -250,7 +236,7 @@ def parse_obj(lt_objs, y_loc):
             print("Needs to be split - %s" % v)
             underscore_list = v.split("_")  # Split on '_'
             underscore_list.pop()  # Remove the last '_'
-            del texts[key]  # Delete that key from teh dictionary
+            del texts[key]  # Delete that key from the dictionary
             # deleted_keys.append(key)
             # Adjust X based on the number of manual enters within the text box.
             for loc, i in enumerate(underscore_list):
@@ -260,25 +246,41 @@ def parse_obj(lt_objs, y_loc):
             if v.endswith('_'):
                 v = v[:-1]
                 texts[key] = v.replace('_', ' ')
-            else:
-                texts[key] = v.replace('_', ' ')
+            # else:
+            #     texts[key] = v.replace('_', ' ')
 
+
+    comb = permutations(env_list, 2)
+    env_matches = {}
     for k,v in texts.items():
         if v in env_list:
-            print("Match %0.3f - %s" % (k, v))
+            # print("Match %0.3f - %s" % (k, v))
+            env_matches[k] = v
         elif '/' in v:
             print('Two ENV? %0.3f - %s' % (k, v))
             a = v.split('/')
             print(a)
             for i in a:
                 if i in env_list:
-                    print("SUB - Match %0.3f - %s" % (k, i))
+                    # print("SUB - Match %0.3f - %s" % (k, i))
+                    env_matches[k] = i
+                elif i == '':
+                    print("Empty String")
                 else:
+                    print(i)
                     print('\033[1;31m PLEASE CHECK! %s \033[0m' % i)
+                    for m in list(comb):
+                        n = ''.join(m)
+                        if i == n:
+                            print('\033[1;31m FOUND! Possible matches %s \033[0m'% ' and '.join(m))
+                            # env_matches[k] = v
+
         else:
             print('UNKNOWN %0.3f - %s' % (k, v))
         # print(k,v)
 
+    print(env_matches)
+    print("Processed Environments - OCR Mode")
 
 
     # Identify location of lines
@@ -315,10 +317,10 @@ LOG INFO
 
 
 def log_info(coord, corel):
-    coord_myarray = np.asarray(coord) # convert nested list to numpy array
+    coord_myarray = np.asarray(coord)  # convert nested list to numpy array
     for k, v in locations.items():
-        v[1] = tot_len - v[1]
-        alpha = coord_myarray[spatial.KDTree(coord_myarray).query(v)[1]] # Lookup nearest point to predefined location
+        v[1] = tot_len - v[1]  # Get the depth from the top.
+        alpha = coord_myarray[spatial.KDTree(coord_myarray).query(v)[1]]  # Lookup nearest point to predefined location
         for k1, v1 in corel.items():
             if v1 == list(alpha):
                 print(k, '\t', k1)
@@ -360,6 +362,7 @@ def check_depth_column(name, list_values):
 '''
 INITIALIZING MAIN MODULE FOR EXECUTION
 
+- SCRIPT OBTAINED FROM https://stackoverflow.com/questions/22898145/how-to-extract-text-and-text-coordinates-from-a-pdf-file
 - Open PDF and obtain file extents. Mainly "y_top" that will be used for further processing.
 - Size of MEDIABOX returned in points.
 '''
@@ -367,11 +370,43 @@ INITIALIZING MAIN MODULE FOR EXECUTION
 
 def initial_processing():
     global tot_len
+    print("LOADING PDF. Please be patient...")
+    # Create a PDF parser object associated with the file object.
+    parser = PDFParser(fp)
+
+    # Create a PDF document object that stores the document structure.
+    # Password, if any, for initialization as 2nd parameter
+    document = PDFDocument(parser)
+
+    # Check if the document allows text extraction. If not, abort.
+    if not document.is_extractable:
+        raise PDFTextExtractionNotAllowed
+
+    # Create a PDF resource manager object that stores shared resources.
+    rsrcmgr = PDFResourceManager()
+
+    # Create a PDF device object.
+    device = PDFDevice(rsrcmgr)
+
+    # BEGIN LAYOUT ANALYSIS
+    # Set parameters for analysis.
+    laparams = LAParams()
+
+    # Create a PDF page aggregator object.
+    device = PDFPageAggregator(rsrcmgr, laparams=laparams)
+
+    # Create a PDF interpreter object.
+    interpreter = PDFPageInterpreter(rsrcmgr, device)
+
+    # Total number of pages in PDF.
+    tot_pages = (resolve1(document.catalog['Pages'])['Count'])
+    page_count = 1
+
     # loop over all pages in the document
     for page in PDFPage.create_pages(document):
 
         # read the media box that is the page size as list of 4 integers x0 y0 x1 y1
-        print(page.mediabox)
+        print("PAGE %s DIMENSIONS is %s points." % (page_count, page.mediabox))
         _, _, _, tot_len = page.mediabox
 
         # read the page into a layout object
@@ -381,8 +416,171 @@ def initial_processing():
         layout = device.get_result()
 
         # load module to parse every object encountered in the PDF
+        print("PDF PAGE %s / %s LOADED." % (page_count, tot_pages))
         parse_obj(layout._objs, tot_len - 190)
 
+        # Crop PDF to prcess the biogenic column
+        cropping_pdf()
+
+        # Increase page count
+        page_count += 1
+
+
+'''
+CONVERT PDF TO PNG
+
+- Loads PDF log and returns PNG at specified pixel
+'''
+
+def convert(f_name, conv_resol):
+    global fil_name
+    from wand.image import Image
+    from wand.color import Color
+    with Image(filename=f_name, resolution=conv_resol) as img:
+        with Image(width=img.width, height=img.height, background=Color("white")) as bg:
+            bg.composite(img, 0, 0)
+            bg.save(filename=os.path.splitext(f_name)[0] + '_python_convert.png')
+    fil_name = os.path.splitext(f_name)[0] + '_python_convert.png'
+
+'''
+LOAD FOLDER
+
+- Load folder that contains all the templates to be matched.
+'''
+
+
+def load_templates(template_folder):
+    templates_folder = []
+    for root, path_dir, filenames in os.walk(template_folder):
+        for filename in filenames:
+            templates_folder.append(os.path.join(root, filename))
+    templates_folder = sorted(templates_folder)
+    return templates_folder
+
+
+'''
+CROP PDF
+    # - Load entire PDF
+    # - Crop off PDF and return new MediaBOX bound PDF.
+    # - Convert that MediaBOX into high resolution for better image match.
+'''
+
+def cropping_pdf():
+    with open(pdf_name, "rb") as in_f:
+        log_input = PdfFileReader(in_f)
+        x1, y1, x2, y2 = log_input.getPage(0).mediaBox
+        numpages = log_input.getNumPages()
+        sed_struc_log_output = PdfFileWriter()
+
+        # Crop off the sed_biogenic column
+        for i in range(numpages):
+            sed_struc_log = log_input.getPage(i)
+            sed_struc_log.mediaBox.lowerLeft = (240, y2)
+            sed_struc_log.mediaBox.upperRight = (215, y1)
+            sed_struc_log_output.addPage(sed_struc_log)
+
+        # Write cropped area as a new PDF
+        with open((os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log.pdf")), "wb") as out_f:
+            sed_struc_log_output.write(out_f)
+        out_f.close()
+
+        # Open PDF and convert to PNG (h_resol) for image processing.
+        out_f = (os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log.pdf"))
+        convert(out_f, h_resol)
+
+        # Load image, template folder and execute matching module using biogenic parameters and threshold
+        cropped_pdf_image = (os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log_python_convert.png"))
+        template_folder = os.path.join((os.path.dirname(os.path.splitext(pdf_name)[0])), "templates")
+        matching(cropped_pdf_image, template_folder, 0.70)  # match => pdf_image, folder holding template, matching threshold
+
+'''
+MATCH IMAGE & DISPLAY RESULT
+
+- Match the templates from the folder to their respective locations within the cropped image.
+- Templates are resized from 90 -110% of their size to look for more matches.
+- During matching the ratio of tracking is tracked.
+- Match proximity of based on half the smallest diagonal of the all template image.. 
+'''
+
+
+def matching(match_fil_name, folder, threshold):
+    matched, temp_locations = {}, []
+    templates_folder = load_templates(folder)  # Load Templates from Folder
+    print("\033[92m\033[1mProcessing %s - Found %s templates in folder\033[0m" % (os.path.basename(folder).upper(), len(templates_folder)))
+    img_bgr = cv2.imread(os.path.abspath(match_fil_name))  # Read Image as RGB
+    img_gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)  # Convert Image to grayscale
+    cv2.imwrite(os.path.join(os.path.dirname(match_fil_name), 'gray_image.png'), img_gray)  # Write binary Image
+
+    remove, unique_loc = [], []  # reset every time loop is initialised
+    list_r = []
+
+    # Lookup every image in the template folder.
+    for count, name in enumerate(templates_folder):
+        # remove, unique_loc, = [], []  #reset every time loop is initialised
+        color = list([random.choice(range(0, 256)), random.choice(range(0, 256)), random.choice(range(0, 256))])  # Random Color choice
+        template = cv2.imread(os.path.abspath(name), 0)  # Read Template Image as RGB
+        # template = imutils.resize(template, width=int(template.shape[1] * 2))
+        w, h = template.shape[::-1]
+        r = ((h**2 + w **2) ** 0.5)
+        list_r.append(r / 2)
+        # resize the image according to the scale, and keep track of the ratio of the resizing
+        max_scale, min_scale = 1.3, 0.7
+        spacing = int((max_scale - min_scale) / 0.1)
+        for scale in np.linspace(min_scale, max_scale, spacing + 1)[::-1]:
+            # resize the image according to the scale, and keep track of the ratio of the resizing
+            resized = imutils.resize(template, width=int(template.shape[1] * scale))
+            # r = template.shape[1] / float(resized.shape[1]) #ratio
+            res = cv2.matchTemplate(img_gray, resized, cv2.TM_CCOEFF_NORMED)  # Match template to image using normalized correlation coefficient
+            loc = np.where(res >= threshold)  # Obtain locations, where threshold is met. Threshold defined as a function input
+            for pt in zip(*loc[::-1]):  # Goes through each match found
+                temp_locations.append(pt)
+
+            # Sort matches based on Y location.
+            temp_locations = sorted(temp_locations, key=itemgetter(1, 0))
+
+    # Look for the unique points.
+    # Minimum distance between matches set as half the smallest diagonal of the all template image.
+    unique = recursiveCoord(temp_locations, min(list_r))
+    unique = sorted(unique, key=itemgetter(1, 0))
+
+    # Draw a color coded box around each matched template.
+    for pt in unique:
+        # print("unique", pt, (pt[0] ** 2 + pt[1] ** 2) ** 0.5)
+        cv2.rectangle(img_bgr, pt, (pt[0] + w, pt[1] + h), color, 2)
+        unique_loc.append(pt[1])
+
+    print("Found %s matches." % len(unique))
+
+    # Write image showing the location of the detected matches.
+    output_file_name = str(os.path.basename(folder)) + '_detected %s' % os.path.basename(name)
+    cv2.imwrite(os.path.join(os.path.dirname(match_fil_name), output_file_name), img_bgr)
+    print("Detected image saved.")
+
+
+'''
+CHECKING PROXIMITY
+
+- Takes the first X/Y of the matched points and compares it to the remaining points.
+- Points within the threshold are deleted and the list updated. 
+- Iterates till all the points are compared against each other. 
+'''
+
+def recursiveCoord(_coordinateList, threshold):
+    if len(_coordinateList) > 1:
+        xy_0 = _coordinateList[0]
+        remaining_xy = list(set(_coordinateList) - set(xy_0))
+
+        new_xy_list = []
+
+        for coord in remaining_xy:
+            dist = distance.euclidean(xy_0 ,coord)
+
+            if dist >= threshold:
+                new_xy_list.append(coord)
+
+        return [xy_0] + recursiveCoord(new_xy_list, threshold)
+    else:
+        return []
 
 '''
 MAIN MODULE
@@ -394,6 +592,7 @@ MAIN MODULE
 if __name__ == "__main__":
     try:
         initial_processing()
+        # cropping_pdf()
         print ("Total Execution time: \033[1m%s\033[0m\n" % calc_timer_values(time.time() - abs_start))
     except KeyboardInterrupt:
         exit("TERMINATED BY USER")
