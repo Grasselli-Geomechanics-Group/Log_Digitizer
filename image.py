@@ -97,6 +97,18 @@ def calc_timer_values(end_time):
 
 abs_start = time.time()
 
+def red_text(val):
+    tex = "\033[1;31m%s\033[0m" % val
+    return tex
+
+def green_text(val):
+    tex = "\033[1;92m%s\033[0m" % val
+    return tex
+
+def bold_text(val):
+    tex = "\033[1m%s\033[0m" % val
+    return tex
+
 
 '''
 DEFINE THE RGB SPECTRUM FOR VISUAL APPEAL
@@ -199,7 +211,7 @@ def parse_obj(lt_objs, y_loc):
         elif isinstance(obj, pdfminer.layout.LTFigure):
             parse_obj(obj._objs)
 
-    print("OCR COMPLETED.")
+    print(green_text("PDF OCR COMPLETED. \n"))
 
     # Run the module to obtain scale.
     log_info(coord, corel)
@@ -209,7 +221,7 @@ def parse_obj(lt_objs, y_loc):
     
     - Lookup depth column (X = 40 to 60 & Y = 180 points from top of page).
     - Identifies presence of integers to establish scale.
-    - Returns error is anything apart from integers is encounterd.
+    - Returns error is anything apart from integers is encountered.
     '''
     for obj in lt_objs:
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
@@ -217,7 +229,7 @@ def parse_obj(lt_objs, y_loc):
                 try:
                     depths[int(obj.bbox[1])] = int(obj.get_text().replace('\n', ''))
                 except ValueError:
-                    print("\033[1;31m Error in Depth Column - %s\033[0m" % obj.get_text().replace('\n', '_'))
+                    print(red_text("Error in Depth Column\nPossible text deteceted:\t %s" % obj.get_text().replace('\n', '_')))
                     # exit("Status 10 - Text identified in the Depth Column. Please change value of y_loc.")
 
 
@@ -226,7 +238,7 @@ def parse_obj(lt_objs, y_loc):
     depths = OrderedDict(sorted(depths.items(), key=lambda t: t[0]))
     a, b = [], []
     for key in depths:
-        # print("%s: %s" % (key, depths[key]))
+        # print("%s: %s" % (key, depths[key]))  # DISPLAY the OCR of the text sequence {Pt. : OCR Depth value}
         a.append(depths[key])
         b.append(key)
 
@@ -243,7 +255,7 @@ def parse_obj(lt_objs, y_loc):
     y, x = [a[0], a[-1]], [b[0], b[-1]]
     coeff(x, y)
 
-    print("Processed depth column - OCR Mode.\nCoeff : %.3f x + %.3f." % (m, c))
+    print(green_text("\nProcessed Depth Column - OCR Mode.\nCoeff : %.3f x + %.3f.\n" % (m, c)))
 
     '''
     PROCESS // PARSE ENVIRONMENT COLUMN
@@ -272,9 +284,10 @@ def parse_obj(lt_objs, y_loc):
     #     print(k,v)
 
     split_texts, deleted_keys = {}, []
+    print(bold_text("Validating OCR in Environment Column\n"))
     for key, v in list(texts.items()): # In Python 3.x, use list(data.items()). In Python 2.7+ use data.items().
         if v.count("_") > 1 and v not in ["Distal_Ramp_"]:
-            print("Needs to be split - %s" % v)
+            print("Manual \'Enter\' detected - %s" % v)
             underscore_list = v.split("_")  # Split on '_'
             underscore_list.pop()  # Remove the last '_'
             del texts[key]  # Delete that key from the dictionary
@@ -298,30 +311,30 @@ def parse_obj(lt_objs, y_loc):
             # print("Match %0.3f - %s" % (k, v))
             env_matches[k] = v
         elif '/' in v:
-            print('Two ENV? %0.3f - %s' % (k, v))
+            print('Possibly Dual Environment \t %0.3f - %s' % (k, v))
             a = v.split('/')
-            print(a)
+            print(red_text('Found Possible matches %s') % ' and '.join(a))
             for i in a:
                 if i in env_list:
                     # print("SUB - Match %0.3f - %s" % (k, i))
                     env_matches[k] = i
                 elif i == '':
-                    print("Empty String")
+                    # print("Empty String")
+                    continue
                 else:
-                    print(i)
-                    print('\033[1;31m PLEASE CHECK! %s \033[0m' % i)
+                    print(bold_text('PLEASE CHECK! %s') % red_text(i))
                     for k in list(comb):
                         n = ''.join(k)
                         if i == n:
-                            print('\033[1;31m FOUND! Possible matches %s \033[0m'% ' and '.join(k))
+                            print(red_text('Found Possible matches %s') % ' and '.join(k))
                             # env_matches[k] = v
 
         else:
             print('UNKNOWN %0.3f - %s' % (k, v))
         # print(k,v)
 
-    print(env_matches)
-    print("Processed Environments - OCR Mode")
+    # print(env_matches)  # DISPLAY the entire environment matches {DEPTH : VALUE}
+    print(green_text("\nProcessed Environments - OCR Mode\n"))
 
 
     # Identify location of lines
@@ -364,7 +377,10 @@ def log_info(coord, corel):
         alpha = coord_myarray[spatial.KDTree(coord_myarray).query(v)[1]]  # Lookup nearest point to predefined location
         for k1, v1 in corel.items():
             if v1 == list(alpha):
-                print(k, '\t', k1)
+                if k1.count("_") > 1:
+                    print(bold_text(k), '\t', k1.split('_')[0])
+                else:
+                    print(bold_text(k), '\t', k1.replace('_', ''))
 
 '''
 DEPTH COLUMN - VALIDATION
@@ -390,12 +406,12 @@ def check_depth_column(name, list_values):
                         # exit(11)
     unique_values = len(set(np.diff(list_values)))
     diff = abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values))))
-    if len(set(np.diff(list_values))) == 1:
-         print("%s in the DEPTH COLUMN CHECKED" % name)
-    elif abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values)))) < 2:
-        print("MINOR Error in scale of %s, off by %s units" % (name, diff))
+    if len(set(np.diff(list_values))) == 1 or abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values)))) < 2:
+         print(green_text("\n%s in the DEPTH COLUMN CHECKED" % name))
+    # elif abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values)))) < 2:
+    #     print("MINOR Error in scale of %s, off by %s units" % (name, diff))
     else:
-        print("\033[1;31m Status 12 - MINOR Error in scale of %s, off by %s units\nValues are %s \033[0m" % (name, diff, np.diff(list_values)))
+        print(red_text("Status 12 - MINOR Error in scale of %s, off by %s units\nValues are %s" % (name, diff, np.diff(list_values))))
         # exit("Status 12 - MINOR Error in scale of %s, off by %s units\nValues are %s" % (name, diff, np.diff(list_values)))
     return np.diff(list_values)
 
@@ -411,7 +427,7 @@ INITIALIZING MAIN MODULE FOR EXECUTION
 
 def initial_processing():
     global tot_len
-    print("LOADING PDF. Please be patient...")
+    print("LOADING %s. Please be patient..." % red_text(os.path.basename(pdf_name)))
     # Create a PDF parser object associated with the file object.
     parser = PDFParser(fp)
 
@@ -460,7 +476,10 @@ def initial_processing():
         print("PDF PAGE %s / %s LOADED." % (page_count, tot_pages))
         parse_obj(layout._objs, tot_len - 190)
 
-        # Crop PDF to prcess the biogenic column
+        # Convert PDF to process lithology column and obtain Pt./Pixel Ratio
+        processing(len(litho_legend))
+
+        # Crop PDF to precess the biogenic column
         cropping_pdf()
 
         # Increase page count
@@ -547,12 +566,16 @@ MATCH IMAGE & DISPLAY RESULT
 def matching(match_fil_name, folder, threshold):
     matched, temp_locations = {}, []
     templates_folder = load_templates(folder)  # Load Templates from Folder
-    print("\033[92m\033[1mProcessing %s - Found %s templates in folder\033[0m" % (os.path.basename(folder).upper(), len(templates_folder)))
+    print(green_text("\nProcessing %s - PNG Mode\nFound %s templates in folder" % (os.path.basename(folder).upper(), len(templates_folder))))
     img_bgr = cv2.imread(os.path.abspath(match_fil_name))  # Read Image as RGB
     img_gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)  # Convert Image to grayscale
     cv2.imwrite(os.path.join(os.path.dirname(match_fil_name), 'gray_image.png'), img_gray)  # Write binary Image
+    _, temp_w, temp_h = img_bgr.shape[::-1]  # Tuple of number of rows, columns and channels
+    # print(img_bgr.size)
+    # dpi = int(img_bgr.size / (temp_w * temp_h) * 100)
+    print ("Image Loaded - Dimensions %s px X %s px @ %s dpi.\nPixel to Point ratio is: %.2f" % (temp_w, temp_h, h_resol, ratio_px_pt))
 
-    remove, unique_loc = [], []  # reset every time loop is initialised
+    remove, unique_loc = [], []  # reset every time loop is initialised?
     list_r = []
 
     # Lookup every image in the template folder.
@@ -576,8 +599,8 @@ def matching(match_fil_name, folder, threshold):
             for pt in zip(*loc[::-1]):  # Goes through each match found
                 temp_locations.append(pt)
 
-            # Sort matches based on Y location.
-            temp_locations = sorted(temp_locations, key=itemgetter(1, 0))
+        # Sort matches based on Y location.
+        temp_locations = sorted(temp_locations, key=itemgetter(1, 0))
 
     # Look for the unique points.
     # Minimum distance between matches set as half the smallest diagonal of the all template image.
@@ -590,12 +613,12 @@ def matching(match_fil_name, folder, threshold):
         cv2.rectangle(img_bgr, pt, (pt[0] + w, pt[1] + h), color, 2)
         unique_loc.append(pt[1])
 
-    print("Found %s matches." % len(unique))
+    print("Found %s matches." % bold_text(len(unique)))
 
     # Write image showing the location of the detected matches.
     output_file_name = str(os.path.basename(folder)) + '_detected %s' % os.path.basename(name)
     cv2.imwrite(os.path.join(os.path.dirname(match_fil_name), output_file_name), img_bgr)
-    print("Detected image saved.")
+    print(bold_text("Detected image saved.\n"))
 
 
 '''
@@ -661,7 +684,10 @@ def load_image(file_name):
     rgb_im = im.convert('RGB')
     # Obtain image dimension for digitization
     width, height = im.size
-    # print("" % (width, height))
+    # pdf_image = cv2.imread(file_name)  # Read Image as RGB
+    # _, pdf_dpi_w, pdf_dpi_h = pdf_image.shape[::-1]  # Tuple of number of rows, columns and channels
+    # pdf_dpi = int(pdf_image.size / (pdf_dpi_w * pdf_dpi_h) * 100)
+    # cv2.destroyAllWindows()
     return rgb_im, width, height
 
 
@@ -675,25 +701,27 @@ def coeff(mx, my):
     m, c = np.polyfit(mx, my, 1)
     return m, c
 
-
-
 # - Obtains all colors (1 pixel wide) at X location
 # - Reduces colors to an amount equal to the user defined unique colors
 
+
 def processing(defined_number_of_unique_colors):
+    print(green_text("\nProcessing color column. - PNG Mode"))
     convert(pdf_name, resol)  # Convert pdf at the specified resolution
-    load_image(fil_name)  # load image and obtain necessary information
-    ratio()
-    print ("Image Loaded - Dimensions %s px X %s px.\nPixel to Point ratio is: %.2f" % (width, height, ratio_px_pt))
-    color_map = []
-    defined_color_map = []
+    load_image(fil_name)  # Load image and obtain necessary information
+    ratio()  # Calculate ratio
+    color_map, defined_color_map  = [], []
     approx_x = 186 * ratio_px_pt
+    print ("Image Loaded - Dimensions %s px X %s px @ %s dpi.\nPixel to Point ratio is: %.2f" % (width, height, resol, ratio_px_pt))
+
     # Obtain All Colors (1 Color/pixel) in the Lithological Identification
     for j in range(0, height):
         # print (j, rgb_im.getpixel((approx_x, j)))
         color_map.append(rgb_im.getpixel((approx_x, j)))
 
-    print("\033[92m\033[1mProcessing %s.\033[0m\nNo. of existing colors in Pixel ID %s column is: %s" % ("color column", approx_x, len(set(color_map))))
+    print("No. of existing colors in Pixel ID %s column is: %s" % (bold_text(approx_x), bold_text(len(set(color_map)))))
+
+
     color_map_mode = Counter(color_map)  # counts the frequency of RGB Colors
     color_map_mode = (sorted(color_map_mode.items(), key=lambda g: g[1], reverse=True))  # Sorts ascending based on frequency
 
@@ -708,12 +736,12 @@ def processing(defined_number_of_unique_colors):
                     mode_counter += 1
 
     unique_color_map = defined_color_map + excluded_colors  # Colors used in cleanup
-    print("\nLooking up defined and excluded colors. A total of : %s" % len(set(unique_color_map)))
+    print("Looking up defined and excluded colors. A total of : %s" % bold_text(len(set(unique_color_map))))
 
-    print("\n\033[1mUser defined No. of Colors\033[0m\n")
+    print(bold_text("User defined No. of Colors\n"))
     for i in unique_color_map:
         # actual_name, closest_name = get_colour_name(i)
-        print("RGB: %s \t- Closest RGB colour name: \033[1m%s\033[0m" % (i, get_colour_name(i)[1]))
+        print("RGB: %s \t- Closest RGB colour name: %s" % (i, bold_text(get_colour_name(i)[1])))
 
     ## MOVE TO NEXT MODULE - IMAGE CLEANUP
     log_cleanup(color_map, unique_color_map)
@@ -730,11 +758,11 @@ def log_cleanup(color_map, unique_color_map):
         if color_map[i] not in unique_color_map:
             color_map[i] = color_map[i - 1]
 
-    for i, j in enumerate(color_map):
-        print(m * ((len(color_map) - i) / ratio_px_pt) + c, j, get_colour_name(j)[1])
+    # for i, j in enumerate(color_map):
+    #     print(m * ((len(color_map) - i) / ratio_px_pt) + c, j, get_colour_name(j)[1])
 
     # ## MOVE TO NEXT MODULE - REMOVE LINES
-    # remove_black_lines(color_map)
+    remove_black_lines(color_map)
 
 '''
 REMOVE LINES
@@ -765,9 +793,9 @@ def remove_black_lines(color_map):
         color_map[k] = color_map[min(location) - 1]
 
     color_map.pop()
-    print(m, c)
-    for i, j in enumerate(color_map):
-        print(m * (i / ratio_px_pt) + c, j)
+
+    # for i, j in enumerate(color_map):
+    #     print("%.3f %s %s" %(m * ((len(color_map) - i) / ratio_px_pt) + c, j, get_colour_name(j)[1]))
 
 
 '''
@@ -780,9 +808,9 @@ MAIN MODULE
 if __name__ == "__main__":
     try:
         initial_processing()
-        cropping_pdf()
+        # cropping_pdf()
         # Load processing module using Lithological Identification parameters
-        processing(len(litho_legend))
+        # processing(len(litho_legend))
         print ("Total Execution time: \033[1m%s\033[0m\n" % calc_timer_values(time.time() - abs_start))
     except KeyboardInterrupt:
         exit("TERMINATED BY USER")
