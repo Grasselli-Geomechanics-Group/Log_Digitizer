@@ -1,5 +1,5 @@
 # /////////////////////////////////////////////////////////////// #
-# !python2.7
+# !python3.6
 # -*- coding: utf-8 -*-
 # Python Script initially created on 12/05/2018
 # Compiled by Aly @ Grasselli's Geomechanics Group, UofT, 2018
@@ -8,35 +8,6 @@
 # /////////////////////////////////////////////////////////////// #
 
 ## This code was compiled based on the layout of d_66_I_94_B_16_Continuous_Core Log
-
-# V01
-#   - Initial release
-
-# V02
-#   - PDF conversion is completely housed within the script.
-#   - Code optimization {Split into different modules}.
-#   - Modules run for different pixel columns as defined.
-#   - Identifies depositional bedding type.
-
-# V03
-#   - Adjust scale based on dpi.
-#   - Code optimization {Algorithm changed}.
-#   - Changed colors in terminal outputs.
-#   - PDF split into MediaBOX to have a higher resolution image during template matching.
-#   - Template matching functional.
-
-# V04
-#   - Write to Sediment and Environment to CSV.
-#   - Code optimization {Algorithm changed}.
-
-# V05
-#   - Added the colour code to the visual output on python terminal.
-#   - Scaling template from 90% to 110% (90, 100, 110) to ook for possible matches
-#   - Fixed issue with different size (length) logs
-
-# V06
-#   - Vision changed to using OCRs
-
 
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfdocument import PDFDocument
@@ -64,9 +35,12 @@ import imutils
 import cv2
 import random
 import webcolors
+import csv
+
+# START OF EXECUTION
+abs_start = time.time()
 
 # Locations of items to look for. Format {"WHAT" : [X coordinate from left of log, Y coordinate from top of log]}
-# locations = {'Name:' : [475, 734], 'Well Location:' : [100, 748] , 'Fm/Strat. Unit:' : [308, 734], 'Date:' : [469, 706]}
 locations = {'Name:' : [475, 56], 'Well Location:' : [100, 42] , 'Fm/Strat. Unit:' : [308, 56], 'Date:' : [469, 84]}
 
 # Abbreviation of the Dep. Env. / Sedimentary Facies
@@ -81,8 +55,6 @@ resol = 300
 litho_legend = {"skyblue": "Laminated Bedded Resedimented Bioclasts", "sandybrown": "Bituminous F-C Siltstone", "tan": "Bituminous F-M Siltstone", "khaki": "Sandy F-C Siltstone to Silty VF Sandstone", "darkseagreen": "Phosphatic - Bituminous Sandy Siltstone to Breccia", "plum": "Calcareous - Calcispheric Dolosiltstone"}
 excluded_colors = [(255, 255, 255), (36, 31, 33), (94, 91, 92), (138, 136, 137), (197, 195, 196), (187, 233, 250), (26, 69, 87)]  # exclusion colors from mapping [(White), (Black), (Dim Grey), (Grey), (Silver), (paleturquoise), (darkslategray)]
 
-
-
 '''
 TIMER FUNCTION
 '''
@@ -95,20 +67,24 @@ def calc_timer_values(end_time):
     else:
         return "\033[1m%d minutes and %d seconds\033[0m." % (minutes, sec)
 
-abs_start = time.time()
+'''
+FORMATTING OPTIONS - TEXT COLORS
+'''
 
-def red_text(val):
+
+def red_text(val): # RED Bold text
     tex = "\033[1;31m%s\033[0m" % val
     return tex
 
-def green_text(val):
+
+def green_text(val): # GREEN Bold text
     tex = "\033[1;92m%s\033[0m" % val
     return tex
 
-def bold_text(val):
+
+def bold_text(val): # Bold text
     tex = "\033[1m%s\033[0m" % val
     return tex
-
 
 '''
 DEFINE THE RGB SPECTRUM FOR VISUAL APPEAL
@@ -128,7 +104,7 @@ def closest_colour(requested_colour):
 
 '''
 GET COLOR NAME BASED ON RGB SPECTRUM
-    # - If not found returns nearest color name in spectrum
+- If not found returns nearest color name in spectrum
 '''
 
 
@@ -142,8 +118,8 @@ def get_colour_name(requested_colour):
 
 '''
 CONVERT BYTES TO STRING
-# Default PDF reader usually return  unicode string.
-# Convert the given unicode string to a bytestring, using the standard encoding, unless it's already a bytestring.
+- Default PDF reader usually return  unicode string.
+- Convert the given unicode string to a bytestring, using the standard encoding, unless it's already a bytestring.
 '''
 
 
@@ -154,16 +130,19 @@ def to_bytestring (s, enc='utf-8'):
         else:
             return s.encode(enc)
 
+'''
+GLOBAL OPENING OF FILE
+- Insert File name to open
+- Load file
+'''
+
 # Open a PDF file.
 # pdf_name = '/home/aly/Desktop/log2/d_66/d_66_I_94_B_16_Continuous_Core.pdf'
 pdf_name = '/home/aly/Desktop/log2/talisman/Talisman c-65-F_Page 1.pdf'
 # pdf_name = 'C:/Users/alica/Desktop/log2/d_66/d_66_I_94_B_16_Continuous_Core.pdf'
 # pdf_name = 'C:/Users/alica/Desktop/log2/talisman/Talisman_c-65-F_Page_1.pdf'
 
-'''
-GLOBAL OPENING OF FILE
-'''
-
+# LOAD FILE
 fp = open(pdf_name, 'rb')
 
 def update_page_text_hash (h, lt_obj, pct=0.2):
@@ -256,6 +235,8 @@ def parse_obj(lt_objs, y_loc):
     coeff(x, y)
 
     print(green_text("\nProcessed Depth Column - OCR Mode.\nCoeff : %.3f x + %.3f.\n" % (m, c)))
+    print(green_text("\nProcessed Depth Column - OCR Mode.\nCoeff : %s x + %s.\n" % (m, c)))
+
 
     '''
     PROCESS // PARSE ENVIRONMENT COLUMN
@@ -294,7 +275,7 @@ def parse_obj(lt_objs, y_loc):
             # deleted_keys.append(key)
             # Adjust X based on the number of manual enters within the text box.
             for loc, i in enumerate(underscore_list):
-                delta = (len(underscore_list) - 1 - loc) * (m * (16.3))
+                delta = (len(underscore_list) - 1 - loc) * (m * (16.3)) # 16.3
                 texts[key + delta] = i
         else:
             if v.endswith('_'):
@@ -305,6 +286,7 @@ def parse_obj(lt_objs, y_loc):
 
 
     comb = permutations(env_list, 2)
+    global env_matches
     env_matches = {}
     for k,v in texts.items():
         if v in env_list:
@@ -314,27 +296,33 @@ def parse_obj(lt_objs, y_loc):
             print('Possibly Dual Environment \t %0.3f - %s' % (k, v))
             a = v.split('/')
             print(red_text('Found Possible matches %s') % ' and '.join(a))
+            env_matches[k] = ' / '.join(a)
             for i in a:
-                if i in env_list:
-                    # print("SUB - Match %0.3f - %s" % (k, i))
-                    env_matches[k] = i
-                elif i == '':
-                    # print("Empty String")
+                if i in env_list or i == '':
                     continue
+                #     print("SUB - Match %0.3f - %s" % (k, i))
+                #     # env_matches[k] = i
+                # elif i == '':
+                #     # print("Empty String")
+                #     continue
                 else:
                     print(bold_text('PLEASE CHECK! %s') % red_text(i))
-                    for k in list(comb):
-                        n = ''.join(k)
+                    for b in list(comb):
+                        n = ''.join(b)
                         if i == n:
-                            print(red_text('Found Possible matches %s') % ' and '.join(k))
-                            # env_matches[k] = v
-
+                            print(red_text('Found Possible matches %s') % ' and '.join(b))
+                            env_matches[k] = ' / '.join(b)
         else:
             print('UNKNOWN %0.3f - %s' % (k, v))
         # print(k,v)
 
-    # print(env_matches)  # DISPLAY the entire environment matches {DEPTH : VALUE}
+    env_matches = OrderedDict(sorted(env_matches.items()))
+    # print(env_matches)
+    # DISPLAY the entire environment matches {DEPTH : VALUE}
+    # for k,v in env_matches.items():
+    #     print(k,v)
     print(green_text("\nProcessed Environments - OCR Mode\n"))
+    # exit (10)
 
 
     # Identify location of lines
@@ -575,6 +563,7 @@ def matching(match_fil_name, folder, threshold):
     # dpi = int(img_bgr.size / (temp_w * temp_h) * 100)
     print ("Image Loaded - Dimensions %s px X %s px @ %s dpi.\nPixel to Point ratio is: %.2f" % (temp_w, temp_h, h_resol, ratio_px_pt))
 
+    global unique_loc
     remove, unique_loc = [], []  # reset every time loop is initialised?
     list_r = []
 
@@ -620,6 +609,7 @@ def matching(match_fil_name, folder, threshold):
     cv2.imwrite(os.path.join(os.path.dirname(match_fil_name), output_file_name), img_bgr)
     print(bold_text("Detected image saved.\n"))
 
+    write_to_csv(overall_dictonary, env_matches, color_dict, unique_loc)
 
 '''
 CHECKING PROXIMITY
@@ -701,18 +691,100 @@ def coeff(mx, my):
     m, c = np.polyfit(mx, my, 1)
     return m, c
 
+
+def processing_HZ_lines():
+    HZ_lines = {}
+    print ("Image Loaded - Dimensions %s px X %s px @ dpi.\nPixel to Point ratio is: %.3f" % (width, height, ratio_px_pt))
+    approx_x = {1530: ['ALL_PNG', 1000, 600], 2300: ['ENV_PNG', 200, 150]}
+
+    for k, v in approx_x.items():
+        location_to_check = []
+        black_lines = []
+        for j in range(0, height):
+            if rgb_im.getpixel((k, j)) == (36, 31, 33):
+                black_lines.append(int(j))
+
+        possible_black_lines = (list(group_runs(black_lines)))
+        for i in possible_black_lines:
+            location_to_check.append((sum(i) / len(i)))
+
+        bed(k, v[1], v[2], location_to_check)
+        HZ_lines[v[0]] = contact_type
+    # print(HZ_lines)
+
+    ALL_PNG = (HZ_lines['ALL_PNG'])
+    ENV_PNG = (HZ_lines['ENV_PNG'])
+
+    if len(ALL_PNG) == len(ENV_PNG):
+        for x in range(len(ALL_PNG)):
+            if -10 < ALL_PNG[x] - ENV_PNG[x] < 10:
+                continue
+                # print(ALL_PNG[x] - ENV_PNG[x], "match")
+            else:
+                print(ALL_PNG[x], ENV_PNG[x], "Non match")
+    else:
+        print("ERROR")
+
+    final_dict = {}
+
+    zipped = list(zip(ALL_PNG, ALL_PNG[1:]))
+    ALL_PNG.pop()
+
+    for a, x in enumerate(ALL_PNG):
+        # print(x, zipped[a])
+        final_dict[x] = list(zipped[a])
+
+    # print(sorted(final_dict), key)
+    global  overall_dictonary
+
+    overall_dictonary = OrderedDict(sorted(final_dict.items()))
+    # print(dict(overall_dictonary))
+    # ALL_PNG = list(HZ_lines[0][:])
+    # print(ALL_PNG)
+        # for i in contact_type:
+        #     print(k, i)
+
+def bed(approx_x, neg, pos, location_to_check):
+    global contact_type
+    contact_type = []
+    for i in location_to_check:
+        bedding_surface = []
+        for k in range(approx_x - neg, approx_x + pos):
+            bedding_surface.append(rgb_im.getpixel((k, i)))
+        # print(width, i, Counter(bedding_surface).most_common(2))
+        if Counter(bedding_surface).most_common(1)[0][0] == (36, 31, 33):
+            contact_type.append((m * (height - i) / ratio_px_pt) + c)
+    return contact_type
+
+
+def group_runs(li,tolerance=1):
+    out = []
+    last = li[0]
+    for x in li:
+        if x-last > tolerance:
+            yield out
+            out = []
+        out.append(x)
+        last = x
+    return out
+
+
 # - Obtains all colors (1 pixel wide) at X location
 # - Reduces colors to an amount equal to the user defined unique colors
 
 
 def processing(defined_number_of_unique_colors):
-    print(green_text("\nProcessing color column. - PNG Mode"))
     convert(pdf_name, resol)  # Convert pdf at the specified resolution
     load_image(fil_name)  # Load image and obtain necessary information
     ratio()  # Calculate ratio
     color_map, defined_color_map  = [], []
     approx_x = 186 * ratio_px_pt
+
+    processing_HZ_lines()
+
+    print(green_text("\nProcessing color column. - PNG Mode"))
     print ("Image Loaded - Dimensions %s px X %s px @ %s dpi.\nPixel to Point ratio is: %.2f" % (width, height, resol, ratio_px_pt))
+
 
     # Obtain All Colors (1 Color/pixel) in the Lithological Identification
     for j in range(0, height):
@@ -793,9 +865,115 @@ def remove_black_lines(color_map):
         color_map[k] = color_map[min(location) - 1]
 
     color_map.pop()
+    # print(color_map)
 
-    # for i, j in enumerate(color_map):
-    #     print("%.3f %s %s" %(m * ((len(color_map) - i) / ratio_px_pt) + c, j, get_colour_name(j)[1]))
+    global color_dict
+    color_dict = {}
+    for i, j in enumerate(color_map):
+        # print("%.3f %s %s" %(m * ((len(color_map) - i) / ratio_px_pt) + c, j, get_colour_name(j)[1]))
+        color_dict[m * ((len(color_map) - i) / ratio_px_pt) + c] = get_colour_name(j)[1]
+    print(green_text("\nProcessed color column"))
+
+
+def write_to_csv(h_lines, env, color, unique_loc):
+    print(green_text("\nProcessing CSV Information"))
+    h_lines = OrderedDict(sorted(h_lines.items(), key=lambda t: t[0]))
+    env = OrderedDict(sorted(env.items(), key=lambda t: t[0]))
+    print(dict(h_lines))
+    color = OrderedDict(sorted(color.items(), key=lambda t: t[0]))
+    list_of_dict = [env, ]
+    list_of_dict_names = ["ENVIRONMENT", ]
+
+    # print(h_lines)
+
+    counter = 2
+    for nam, dict_name in enumerate(list_of_dict):
+        print("READING %s" % (list_of_dict_names[nam]))
+        for k, v in h_lines.items():
+            for k1, v1 in list(dict_name.items()):
+                if v[0] < k1 < v[1]:
+                    h_lines[k].append(v1)
+                    del dict_name[k1]
+
+        # print(dict_name)
+
+        if not dict_name:
+            print(green_text("EVERYTHING in %s HAS BEEN MATCHED" % list_of_dict_names[nam]))
+        else:
+            print(red_text("The following has not been matched"))
+            for k2, v2 in dict_name.items():
+                print(red_text("$s - %s" % (k2, v2)))
+
+        all_values = []
+        for k in h_lines.keys():
+            if len(h_lines[k][counter:]) > 1:
+                print(red_text("PLEASE CHECK %.3f - %s" % (k, h_lines[k])))
+                all_values.append([' ? '.join(h_lines[k][counter:])])
+                a = ([' ? '.join(h_lines[k][counter:])])
+                h_lines[k][counter:] = a
+            else:
+                all_values.append(h_lines[k][counter:])
+
+        print("EMPTY ENTRIES IN %s ARE BEING POPULATED AS \'UNKNOWN\'" % list_of_dict_names[nam])
+        for k in h_lines.keys():
+            if len(h_lines[k]) < counter + 1:
+                h_lines[k].append("UNKNOWN")
+
+        counter += 1
+
+    # print(h_lines)
+# def color_counter():
+    from collections import Counter
+    for k, v in h_lines.items():
+        cat_val = []
+        for k1, v1 in list(color.items()):
+            if v[0] < k1 < v[1]:
+                cat_val.append(v1)
+        x = Counter(cat_val)
+        cat_dict = (dict([((i, round(x[i] / len(cat_val) * 100.0))) for i in x]))
+        val = (sorted(cat_dict.items(), key=lambda x: x[1], reverse = True))
+        h_lines[k].append(val)
+
+    print(unique_loc)
+    from collections import Counter
+    for k, v in h_lines.items():
+        cat_temp_val = []
+        for k1 in unique_loc:
+            k1 = (m * (height - (k1 / 2 )) / ratio_px_pt) + c
+            if v[0] < k1 < v[1]:
+                cat_temp_val.append(k1)
+        x = len(cat_temp_val)
+        # cat_temp_dict = (dict([((i, round(x[i] / len(cat_val) * 100.0))) for i in x]))
+        # val = (sorted(cat_temp_dict.items(), key=lambda x: x[1], reverse = True))
+        h_lines[k].append(x)
+
+    # print(h_lines)
+    for k, v in h_lines.items():
+        for i in np.arange(v[0], v[1], 1):
+            # t = (bisect.bisect_left(list(color.keys()), i))
+            maybe = color.get(i) or color[min(color.keys(), key=lambda k: abs(k-i))]
+            print('%.4f %s %s' % (i, v[2:], maybe))
+
+    LAS_output = os.path.join(os.path.dirname(pdf_name), 'LAS_output.csv')
+    with open(LAS_output,'w') as writecsv:
+        writer = csv.writer(writecsv)
+        writer.writerow(["Depth (m)", "Depositional Environment", "Lithology", "Biogenic", "Percentages"])
+        for k, v in h_lines.items():
+            for i in np.arange(v[0], v[1], 1):
+                maybe = color.get(i) or color[min(color.keys(), key=lambda k: abs(k - i))]
+                writer.writerow([i, v[2], maybe, v[4], v[3]])
+    writecsv.close()
+
+    layered_output = os.path.join(os.path.dirname(pdf_name), 'Layered_output.csv')
+    with open(layered_output,'w') as writecsv:
+        writer = csv.writer(writecsv)
+        writer.writerow(["Depth To(m)", "Depth From (m)", "Depositional Environment", "Lithology (Mid Depth)", "Biogenic", "Percentages"])
+        for k, v in h_lines.items():
+            i = (v[0] + v[1]) / 2
+            # for i in np.arange(v[0], v[1], 1):
+            maybe = color.get(i) or color[min(color.keys(), key=lambda k: abs(k - i))]
+            writer.writerow([v[0], v[1], v[2], maybe, v[4], v[3]])
+    writecsv.close()
 
 
 '''
@@ -808,9 +986,6 @@ MAIN MODULE
 if __name__ == "__main__":
     try:
         initial_processing()
-        # cropping_pdf()
-        # Load processing module using Lithological Identification parameters
-        # processing(len(litho_legend))
         print ("Total Execution time: \033[1m%s\033[0m\n" % calc_timer_values(time.time() - abs_start))
     except KeyboardInterrupt:
         exit("TERMINATED BY USER")
