@@ -45,15 +45,23 @@ locations = {'Name:' : [475, 56], 'Well Location:' : [100, 42] , 'Fm/Strat. Unit
 
 # Abbreviation of the Dep. Env. / Sedimentary Facies
 # Will display an error if the text recognised in the Env. column is not in this list.
-env_list = ['H', 'O', 'OTD', 'OTP', 'T. Lag', 'Ramp', 'Distal Ramp', 'T', 'Temp', 'OT', 'LS', 'Turb', 'Temps']
+env_list = ['H', 'O', 'OTD', 'OTP', 'T. Lag', 'Ramp', 'Distal Ramp', 'T', 'Temp', 'OT', 'LS', 'Turb', 'Temps', 'Seismite', 'Fluidized Flow']
 
 # Resolutions
 h_resol = 600
 resol = 300
 
 ## DICTIONARY
-litho_legend = {"skyblue": "Laminated Bedded Resedimented Bioclasts", "sandybrown": "Bituminous F-C Siltstone", "tan": "Bituminous F-M Siltstone", "khaki": "Sandy F-C Siltstone to Silty VF Sandstone", "darkseagreen": "Phosphatic - Bituminous Sandy Siltstone to Breccia", "plum": "Calcareous - Calcispheric Dolosiltstone"}
+litho_legend = {"skyblue": "Laminated Bedded Resedimented Bioclasts", "sandybrown": "Bituminous F-C Siltstone", "tan": "Bituminous F-M Siltstone", "khaki": "Sandy F-C Siltstone to Silty VF Sandstone", "darkseagreen": "Phosphatic - Bituminous Sandy Siltstone to Breccia", "plum": "Calcareous - Calcispheric Dolosiltstone", "white": "Blank Space"}
 excluded_colors = [(255, 255, 255), (36, 31, 33), (94, 91, 92), (138, 136, 137), (197, 195, 196), (187, 233, 250), (26, 69, 87)]  # exclusion colors from mapping [(White), (Black), (Dim Grey), (Grey), (Silver), (paleturquoise), (darkslategray)]
+defined_color_map = [(201, 163, 127), (250, 166, 76), (122, 176, 222), (255, 245, 135), (199, 161, 201), (156, 212, 173), (255, 255, 255)]
+
+# RGB: (201, 163, 127) 	- Closest RGB colour name: tan!
+# RGB: (250, 166, 76) 	- Closest RGB colour name: sandybrown!
+# RGB: (122, 176, 222) 	- Closest RGB colour name: skyblue!
+# RGB: (255, 245, 135) 	- Closest RGB colour name: khaki!
+# RGB: (199, 161, 201) 	- Closest RGB colour name: plum!
+# RGB: (156, 212, 173) 	- Closest RGB colour name: darkseagreen!
 
 '''
 TIMER FUNCTION
@@ -68,7 +76,9 @@ def calc_timer_values(end_time):
         return "\033[1m%d minutes and %d seconds\033[0m." % (minutes, sec)
 
 '''
-FORMATTING OPTIONS - TEXT COLORS
+FORMATTING OPTIONS
+
+- TEXT COLORS
 '''
 
 
@@ -104,6 +114,7 @@ def closest_colour(requested_colour):
 
 '''
 GET COLOR NAME BASED ON RGB SPECTRUM
+
 - If not found returns nearest color name in spectrum
 '''
 
@@ -118,6 +129,7 @@ def get_colour_name(requested_colour):
 
 '''
 CONVERT BYTES TO STRING
+
 - Default PDF reader usually return  unicode string.
 - Convert the given unicode string to a bytestring, using the standard encoding, unless it's already a bytestring.
 '''
@@ -132,39 +144,42 @@ def to_bytestring (s, enc='utf-8'):
 
 '''
 GLOBAL OPENING OF FILE
+
 - Insert File name to open
 - Load file
 '''
 
 # Open a PDF file.
 # pdf_name = '/home/aly/Desktop/log2/d_66/d_66_I_94_B_16_Continuous_Core.pdf'
-pdf_name = '/home/aly/Desktop/log2/talisman/Talisman c-65-F_Page 1.pdf'
+# pdf_name = '/home/aly/Desktop/log2/talisman/Talisman c-65-F_Page 1.pdf'
 # pdf_name = 'C:/Users/alica/Desktop/log2/d_66/d_66_I_94_B_16_Continuous_Core.pdf'
 # pdf_name = 'C:/Users/alica/Desktop/log2/talisman/Talisman_c-65-F_Page_1.pdf'
+# pdf_name = "C:/Users/alica/Desktop/log2/lily/Lily a-9-J_Core 2_Page 4 of 13.pdf"
+pdf_name = "/home/aly/Desktop/log2/lily/Lily a-9-J_Core 2_Page 4 of 13.pdf"
 
 # LOAD FILE
 fp = open(pdf_name, 'rb')
 
-def update_page_text_hash (h, lt_obj, pct=0.2):
-    """Use the bbox x0,x1 values within pct% to produce lists of associated text within the hash"""
-    x0 = lt_obj.bbox[1]
-    x1 = lt_obj.bbox[3]
-    key_found = False
-    for k, v in h.items():
-        hash_x0 = k[1]
-        if x0 >= (hash_x0 * (1.0-pct)) and (hash_x0 * (1.0+pct)) >= x0:
-            hash_x1 = k[0]
-            if x1 >= (hash_x1 * (1.0-pct)) and (hash_x1 * (1.0+pct)) >= x1:
-                # the text inside this LT* object was positioned at the same
-                # width as a prior series of text, so it belongs together
-                key_found = True
-                v.append(to_bytestring(lt_obj.get_text()))
-                h[k] = v
-    if not key_found:
-        # the text, based on width, is a new series,
-        # so it gets its own series (entry in the hash)
-        h[(x0,x1)] = [to_bytestring(lt_obj.get_text())]
-    return h
+# def update_page_text_hash (h, lt_obj, pct=0.2):
+#     """Use the bbox x0,x1 values within pct% to produce lists of associated text within the hash"""
+#     x0 = lt_obj.bbox[1]
+#     x1 = lt_obj.bbox[3]
+#     key_found = False
+#     for k, v in h.items():
+#         hash_x0 = k[1]
+#         if x0 >= (hash_x0 * (1.0-pct)) and (hash_x0 * (1.0+pct)) >= x0:
+#             hash_x1 = k[0]
+#             if x1 >= (hash_x1 * (1.0-pct)) and (hash_x1 * (1.0+pct)) >= x1:
+#                 # the text inside this LT* object was positioned at the same
+#                 # width as a prior series of text, so it belongs together
+#                 key_found = True
+#                 v.append(to_bytestring(lt_obj.get_text()))
+#                 h[k] = v
+#     if not key_found:
+#         # the text, based on width, is a new series,
+#         # so it gets its own series (entry in the hash)
+#         h[(x0,x1)] = [to_bytestring(lt_obj.get_text())]
+#     return h
 
 '''
 PROCESS // PARSE ALL PDF
@@ -174,19 +189,26 @@ PROCESS // PARSE ALL PDF
 '''
 
 
-def parse_obj(lt_objs, y_loc):
+def parse_obj(lt_objs):
     coord, corel, depths = [], {}, {}
+    y_loc = tot_len - 190
+
     '''
     PROCESS // PARSE DEPTH ALL DATA
+    
+    - Y is captured as the mid-height of the bounding box.
     '''
-    # bbox(bounding box) attribute, which is a four - part  tuple of the object's page position: (x0, y0, x1, y1)
+
+    # bbox(bounding box) attribute of a textbox, is a four-part tuple of the object's page position: (x0, y0, x1, y1)
+    # position is returned in terms of Pt. units. Where 0 is the bottom-right of the page.
     for obj in lt_objs:
-        # if it's a textbox, print text and location
+        # if it is a textbox, print text and location
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
-            # print("%6d, %6d, %6d, %6d, %s" % (obj.bbox[0], obj.bbox[1], obj.bbox[2], obj.bbox[3], obj.get_text().replace('\n', '_')))  # Print all OCR Matches and the bounding box locations.
-            coord.append([obj.bbox[0], obj.bbox[1]])  # List of all X/Y of bounding boxes.
-            corel[obj.get_text().replace('\n', '_')] = [obj.bbox[0], obj.bbox[1]]  # Dictionary of {TEXT : [X , Y]}
-        # if it's a container, recurse. That is, LTFigure objects are containers for other LT* objects, so recurse through the children
+            y_mid_height = (obj.bbox[1] + obj.bbox[3]) / 2
+            print("%6d, %6d, %6d, %6d, => %6d - %6d => dx=%6d dy=%6d - %s" % (obj.bbox[0], obj.bbox[1], obj.bbox[2], obj.bbox[3], obj.bbox[0], y_mid_height, obj.bbox[2] - obj.bbox[0], obj.bbox[3] - obj.bbox[1],  obj.get_text().replace('\n','_')))  # Print all OCR Matches and the bounding box locations.
+            coord.append([obj.bbox[0], y_mid_height ])  # List of all X/Y of bounding boxes. Y is mid/height.
+            corel[obj.get_text().replace('\n', '_')] = [obj.bbox[0], y_mid_height]  # Dictionary of {TEXT : [X , Y]}
+        # if it is a container, recurse. That is, LTFigure objects are containers for other LT* objects, so recurse through the children
         elif isinstance(obj, pdfminer.layout.LTFigure):
             parse_obj(obj._objs)
 
@@ -202,40 +224,49 @@ def parse_obj(lt_objs, y_loc):
     - Identifies presence of integers to establish scale.
     - Returns error is anything apart from integers is encountered.
     '''
+
     for obj in lt_objs:
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
             if int(obj.bbox[0]) in range(40,60) and int(obj.bbox[1]) < y_loc:
+                # Checks for integers, produces error and continues if non-integer encountered
                 try:
-                    depths[int(obj.bbox[1])] = int(obj.get_text().replace('\n', ''))
+                    y_mid_height = (obj.bbox[1] + obj.bbox[3]) / 2
+                    depths[int(y_mid_height)] = int(obj.get_text().replace('\n', ''))
                 except ValueError:
-                    print(red_text("Error in Depth Column\nPossible text deteceted:\t %s" % obj.get_text().replace('\n', '_')))
+                    print(red_text("Error in Depth Column\nPossible text detected:\t %s" % obj.get_text().replace('\n', '_')))
                     # exit("Status 10 - Text identified in the Depth Column. Please change value of y_loc.")
 
 
     # Sort by location in the column
-    # Seperate the OCR depth from the point location
+    # Separate the OCR depth from the point location
     depths = OrderedDict(sorted(depths.items(), key=lambda t: t[0]))
     a, b = [], []
+
     for key in depths:
-        # print("%s: %s" % (key, depths[key]))  # DISPLAY the OCR of the text sequence {Pt. : OCR Depth value}
         a.append(depths[key])
         b.append(key)
 
     # Load module to check information in depth column
     list_a = check_depth_column('Depths Values', a)
-    list_b = check_depth_column('Pixel Location', b)
+    list_b = check_depth_column('Pt. Location', b)
 
     # Improvement - How can this difference be quantitative? Standard Deviation?
     # import statistics
     # print(statistics.stdev([(x*1.0) / y for x,y in zip(list_a, list_b)]))
 
     # Equation of linear correlation between
-    # OCR depth [a] & point location [b]
-    y, x = [a[0], a[-1]], [b[0], b[-1]]
+    # OCR depth [a] & Pt. location [b]
+    # between second and second last to avoid movement of last depth avoiding extension of page
+    # Itendified in Lily log.
+    y, x = [a[1], a[-2]], [b[1], b[-2]]
     coeff(x, y)
 
+    # DISPLAY the entire depth column matches {DEPTH : VALUE}
     print(green_text("\nProcessed Depth Column - OCR Mode.\nCoeff : %.3f x + %.3f.\n" % (m, c)))
-    print(green_text("\nProcessed Depth Column - OCR Mode.\nCoeff : %s x + %s.\n" % (m, c)))
+    print("Pt. : OCR Depth value")
+    for key in depths:
+        print("%s : %s" % (key, depths[key]))  # DISPLAY the OCR of the text sequence {Pt. : OCR Depth value}
+    # print(green_text("\nProcessed Depth Column - OCR Mode.\nCoeff : %s x + %s.\n" % (m, c)))
 
 
     '''
@@ -251,22 +282,27 @@ def parse_obj(lt_objs, y_loc):
         - In case of two environments; will check both.
     - Will show error if it can not understand the text OR the "/" is at the start or end of the string.
     '''
-    texts = {}
+
+    texts, dys = {}, []
     for obj in lt_objs:
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
-            if int(obj.bbox[0]) in range(524, 535) and int(obj.bbox[1]) < y_loc:
+            if int(obj.bbox[0]) in range(520, 535) and int(obj.bbox[1]) < y_loc:
                 # text, location = "%.3f, %s" % (m * obj.bbox[1] + c, obj.get_text().replace('\n', '_'))
                 # print("%.3f, %s" % (m * obj.bbox[1] + c, obj.get_text().replace('\n', '_')))
                 # d = m * obj.bbox[1] + c
-                texts[m * obj.bbox[1] + c] = obj.get_text().replace('\n', '_')
+                y_mid_height = (obj.bbox[1] + obj.bbox[3]) / 2
+                texts[m * y_mid_height + c] = obj.get_text().replace('\n', '_')
+                if obj.get_text().replace('\n', '_').count('_') == 1:
+                    dys.append(abs(obj.bbox[1] - obj.bbox[3]))
                 # print(obj.bbox[1], obj.bbox[1] / ratio, obj.get_text().replace('\n', '_'))
 
     # for k,v in texts.items():
     #     print(k,v)
+    dy = sum(dys) / len(dys)
 
     split_texts, deleted_keys = {}, []
-    print(bold_text("Validating OCR in Environment Column\n"))
-    for key, v in list(texts.items()): # In Python 3.x, use list(data.items()). In Python 2.7+ use data.items().
+    print(bold_text("\nValidating OCR in Environment Column\n"))
+    for key, v in list(texts.items()):
         if v.count("_") > 1 and v not in ["Distal_Ramp_"]:
             print("Manual \'Enter\' detected - %s" % v)
             underscore_list = v.split("_")  # Split on '_'
@@ -275,15 +311,15 @@ def parse_obj(lt_objs, y_loc):
             # deleted_keys.append(key)
             # Adjust X based on the number of manual enters within the text box.
             for loc, i in enumerate(underscore_list):
-                delta = (len(underscore_list) - 1 - loc) * (m * (16.3)) # 16.3
+                delta = (m * dy) * ((len(underscore_list) - loc) - (len(underscore_list) / 2) - 0.5)
                 texts[key + delta] = i
+                # delta = (len(underscore_list) / 2 - 1 - loc) * (m * (14)) # 16.3
         else:
             if v.endswith('_'):
                 v = v[:-1]
                 texts[key] = v.replace('_', ' ')
             # else:
             #     texts[key] = v.replace('_', ' ')
-
 
     comb = permutations(env_list, 2)
     global env_matches
@@ -319,9 +355,11 @@ def parse_obj(lt_objs, y_loc):
     env_matches = OrderedDict(sorted(env_matches.items()))
     # print(env_matches)
     # DISPLAY the entire environment matches {DEPTH : VALUE}
-    # for k,v in env_matches.items():
-    #     print(k,v)
     print(green_text("\nProcessed Environments - OCR Mode\n"))
+    print(env_matches)
+    print('Depth (m) : Environment')
+    for key in env_matches:
+        print("%.5f : %s" % (key, env_matches[key]))
     # exit (10)
 
 
@@ -353,18 +391,18 @@ LOG INFO
 - Locations are returned based on the "locations' dictionary
 '''
 
-## Improvement
+## Possible Improvement
 # 1) Make the match not on X/Y but on the next X in the line (Same Y Value).
 # 2) Does not work if there is a  manual enter by the user in the log.
 
 
 def log_info(coord, corel):
     coord_myarray = np.asarray(coord)  # convert nested list to numpy array
-    for k, v in locations.items():
+    for k, v in locations.items():  # Load locations of identified text
         v[1] = tot_len - v[1]  # Get the depth from the top.
         alpha = coord_myarray[spatial.KDTree(coord_myarray).query(v)[1]]  # Lookup nearest point to predefined location
-        for k1, v1 in corel.items():
-            if v1 == list(alpha):
+        for k1, v1 in corel.items():  # Load the correlation dictionary
+            if v1 == list(alpha):  # Lookup position matches and return matching information.
                 if k1.count("_") > 1:
                     print(bold_text(k), '\t', k1.split('_')[0])
                 else:
@@ -381,7 +419,7 @@ DEPTH COLUMN - VALIDATION
 
 ## Improvement
 # 1) Make the comparison of teh ratio by d_depth over d_point.
-# How can this difference be quantitative - Standard Deviation?
+# How can this difference be quantitative - Standard Deviation / COV?
 # What constituents bad//good.
 
 def check_depth_column(name, list_values):
@@ -390,16 +428,16 @@ def check_depth_column(name, list_values):
         for x, i in enumerate(list_values):
             if x < len(list_values) - 1 :
                     if list_values[x] < list_values[x + 1]:
-                        print("Check the depth column for Typos")
+                        print("Check the depth values for Typos")
                         # exit(11)
     unique_values = len(set(np.diff(list_values)))
-    diff = abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values))))
+    # diff = abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values))))
     if len(set(np.diff(list_values))) == 1 or abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values)))) < 2:
          print(green_text("\n%s in the DEPTH COLUMN CHECKED" % name))
     # elif abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values)))) < 2:
     #     print("MINOR Error in scale of %s, off by %s units" % (name, diff))
     else:
-        print(red_text("Status 12 - MINOR Error in scale of %s, off by %s units\nValues are %s" % (name, diff, np.diff(list_values))))
+        print(red_text("Status 12 - Possible error in scale of %s.\nValues are %s" % (name, np.diff(list_values))))
         # exit("Status 12 - MINOR Error in scale of %s, off by %s units\nValues are %s" % (name, diff, np.diff(list_values)))
     return np.diff(list_values)
 
@@ -462,10 +500,10 @@ def initial_processing():
 
         # load module to parse every object encountered in the PDF
         print("PDF PAGE %s / %s LOADED." % (page_count, tot_pages))
-        parse_obj(layout._objs, tot_len - 190)
+        parse_obj(layout._objs)
 
         # Convert PDF to process lithology column and obtain Pt./Pixel Ratio
-        processing(len(litho_legend))
+        processing(defined_color_map)
 
         # Crop PDF to precess the biogenic column
         cropping_pdf()
@@ -561,7 +599,7 @@ def matching(match_fil_name, folder, threshold):
     _, temp_w, temp_h = img_bgr.shape[::-1]  # Tuple of number of rows, columns and channels
     # print(img_bgr.size)
     # dpi = int(img_bgr.size / (temp_w * temp_h) * 100)
-    print ("Image Loaded - Dimensions %s px X %s px @ %s dpi.\nPixel to Point ratio is: %.2f" % (temp_w, temp_h, h_resol, ratio_px_pt))
+    print ("\nImage Loaded - Dimensions %s px X %s px @ %s dpi.\nPixel to Point ratio is: %.2f" % (temp_w, temp_h, h_resol, ratio_px_pt))
 
     global unique_loc
     remove, unique_loc = [], []  # reset every time loop is initialised?
@@ -609,7 +647,7 @@ def matching(match_fil_name, folder, threshold):
     cv2.imwrite(os.path.join(os.path.dirname(match_fil_name), output_file_name), img_bgr)
     print(bold_text("Detected image saved.\n"))
 
-    write_to_csv(overall_dictonary, env_matches, color_dict, unique_loc)
+    write_to_csv(overall_dictionary, env_matches, color_dict, unique_loc)
 
 '''
 CHECKING PROXIMITY
@@ -694,27 +732,40 @@ def coeff(mx, my):
 
 def processing_HZ_lines():
     HZ_lines = {}
-    print ("Image Loaded - Dimensions %s px X %s px @ dpi.\nPixel to Point ratio is: %.3f" % (width, height, ratio_px_pt))
-    approx_x = {1530: ['ALL_PNG', 1000, 600], 2300: ['ENV_PNG', 200, 150]}
+    print ("\nImage Loaded - Dimensions %s px X %s px @ dpi.\nPixel to Point ratio is: %.3f" % (width, height, ratio_px_pt))
+    approx_x = {1530: ['ALL_PNG', 745, 1], 2370: ['ENV_PNG', 100, 100]} # FATAL ERROR IS TRACED To HERE!
 
     for k, v in approx_x.items():
         location_to_check = []
         black_lines = []
         for j in range(0, height):
+            print(j, rgb_im.getpixel((1530, j)))
             if rgb_im.getpixel((k, j)) == (36, 31, 33):
                 black_lines.append(int(j))
 
-        possible_black_lines = (list(group_runs(black_lines)))
+        for i in black_lines:
+            print(i)
+        # print(black_lines)
+        possible_black_lines = ((group_runs(black_lines)))
+        # for i in possible_black_lines:
+        #     print(i)
         for i in possible_black_lines:
+            print(i)
             location_to_check.append((sum(i) / len(i)))
+        print(height)
 
+        # exit(100)
         bed(k, v[1], v[2], location_to_check)
         HZ_lines[v[0]] = contact_type
+
+
     # print(HZ_lines)
 
     ALL_PNG = (HZ_lines['ALL_PNG'])
     ENV_PNG = (HZ_lines['ENV_PNG'])
 
+    print(ALL_PNG)
+    # exit(100)
     if len(ALL_PNG) == len(ENV_PNG):
         for x in range(len(ALL_PNG)):
             if -10 < ALL_PNG[x] - ENV_PNG[x] < 10:
@@ -723,41 +774,59 @@ def processing_HZ_lines():
             else:
                 print(ALL_PNG[x], ENV_PNG[x], "Non match")
     else:
-        print("ERROR")
+        print(red_text("LINE IN ALL PNG AND ENV PNG DO NOT MATCH"))
+        print(list(set(ALL_PNG) - set(ENV_PNG)))
+        exit("FATAL ERROR!")
 
     final_dict = {}
 
     zipped = list(zip(ALL_PNG, ALL_PNG[1:]))
-    ALL_PNG.pop()
+    # zipped.append((ALL_PNG[-1], c))
+    print(zipped)
+    # time.sleep(10)
+    # ALL_PNG.pop()
 
     for a, x in enumerate(ALL_PNG):
-        # print(x, zipped[a])
-        final_dict[x] = list(zipped[a])
+        if a < (len(ALL_PNG) - 1 ):
+            print(x, zipped[a])
+            final_dict[x] = list(zipped[a])
 
+    # for i in ALL_PNG:
+    #     final_dict[ALL_PNG[i]] = list(zipped[i])
+
+    # exit (110)
     # print(sorted(final_dict), key)
-    global  overall_dictonary
+    global  overall_dictionary
 
-    overall_dictonary = OrderedDict(sorted(final_dict.items()))
-    # print(dict(overall_dictonary))
+    overall_dictionary = OrderedDict(sorted(final_dict.items()))
+
+    print(dict(overall_dictionary))
     # ALL_PNG = list(HZ_lines[0][:])
     # print(ALL_PNG)
         # for i in contact_type:
         #     print(k, i)
 
 def bed(approx_x, neg, pos, location_to_check):
+    print(approx_x)
     global contact_type
     contact_type = []
     for i in location_to_check:
         bedding_surface = []
         for k in range(approx_x - neg, approx_x + pos):
             bedding_surface.append(rgb_im.getpixel((k, i)))
-        # print(width, i, Counter(bedding_surface).most_common(2))
+        print(bedding_surface)
+        print(width, i, (m * (height - i) / ratio_px_pt) + c, Counter(bedding_surface).most_common(2))
+        # print(Counter(bedding_surface).most_common(2)[1][1])
         if Counter(bedding_surface).most_common(1)[0][0] == (36, 31, 33):
             contact_type.append((m * (height - i) / ratio_px_pt) + c)
+        elif Counter(bedding_surface).most_common(2)[0][0] == (255, 255, 255) and Counter(bedding_surface).most_common(2)[1][0] == (36, 31, 33) and  Counter(bedding_surface).most_common(2)[1][1] / Counter(bedding_surface).most_common(2)[0][1] > 0.8:
+            print("WHITE / BLACK")
+            contact_type.append((m * (height - i) / ratio_px_pt) + c)
+
     return contact_type
 
 
-def group_runs(li,tolerance=1):
+def group_runs(li, tolerance=1):
     out = []
     last = li[0]
     for x in li:
@@ -766,24 +835,28 @@ def group_runs(li,tolerance=1):
             out = []
         out.append(x)
         last = x
-    return out
+    yield out
+    # return out
+
 
 
 # - Obtains all colors (1 pixel wide) at X location
 # - Reduces colors to an amount equal to the user defined unique colors
 
 
-def processing(defined_number_of_unique_colors):
+def processing(defined_color_map):
     convert(pdf_name, resol)  # Convert pdf at the specified resolution
     load_image(fil_name)  # Load image and obtain necessary information
     ratio()  # Calculate ratio
-    color_map, defined_color_map  = [], []
+    color_map  = []
+    # defined_color_map = list(defined_color_map)
+    print(defined_color_map)
     approx_x = 186 * ratio_px_pt
 
     processing_HZ_lines()
 
     print(green_text("\nProcessing color column. - PNG Mode"))
-    print ("Image Loaded - Dimensions %s px X %s px @ %s dpi.\nPixel to Point ratio is: %.2f" % (width, height, resol, ratio_px_pt))
+    print ("\nImage Loaded - Dimensions %s px X %s px @ %s dpi.\nPixel to Point ratio is: %.2f" % (width, height, resol, ratio_px_pt))
 
 
     # Obtain All Colors (1 Color/pixel) in the Lithological Identification
@@ -799,16 +872,16 @@ def processing(defined_number_of_unique_colors):
 
     # Reduces the colors the (X) amount of the max occurring colors
     # X is user defined
-    mode_counter = 0
-    for i, j in enumerate(color_map_mode):
-        if mode_counter < defined_number_of_unique_colors:
-            for k, color in enumerate(j):
-                if k == 0 and color not in excluded_colors:
-                    defined_color_map.append(color)
-                    mode_counter += 1
+    # mode_counter = 0
+    # for i, j in enumerate(color_map_mode):
+    #     if mode_counter < defined_number_of_unique_colors:
+    #         for k, color in enumerate(j):
+    #             if k == 0 and color not in excluded_colors:
+    #                 defined_color_map.append(color)
+    #                 mode_counter += 1
 
-    unique_color_map = defined_color_map + excluded_colors  # Colors used in cleanup
-    print("Looking up defined and excluded colors. A total of : %s" % bold_text(len(set(unique_color_map))))
+    unique_color_map = defined_color_map  # Colors used in cleanup
+    print("Looking up defined. A total of : %s" % bold_text(len(set(unique_color_map))))
 
     print(bold_text("User defined No. of Colors\n"))
     for i in unique_color_map:
@@ -858,7 +931,8 @@ def remove_black_lines(color_map):
                     elif j < (len(location) / 2):
                         color_map[k] = color_map[min(location) - 1]
                     else:
-                        color_map[k] = color_map[max(location) + 1]
+                        continue
+                        # color_map[k] = color_map[max(location) + 1]
                 location = []
 
     for h, k in enumerate(location):
@@ -872,6 +946,9 @@ def remove_black_lines(color_map):
     for i, j in enumerate(color_map):
         # print("%.3f %s %s" %(m * ((len(color_map) - i) / ratio_px_pt) + c, j, get_colour_name(j)[1]))
         color_dict[m * ((len(color_map) - i) / ratio_px_pt) + c] = get_colour_name(j)[1]
+    for k, v in color_dict.items():
+        print(k, v)
+    # exit(50)
     print(green_text("\nProcessed color column"))
 
 
@@ -883,6 +960,7 @@ def write_to_csv(h_lines, env, color, unique_loc):
     color = OrderedDict(sorted(color.items(), key=lambda t: t[0]))
     list_of_dict = [env, ]
     list_of_dict_names = ["ENVIRONMENT", ]
+    print(env)
 
     # print(h_lines)
 
@@ -896,21 +974,32 @@ def write_to_csv(h_lines, env, color, unique_loc):
                     del dict_name[k1]
 
         # print(dict_name)
-
+        #
         if not dict_name:
             print(green_text("EVERYTHING in %s HAS BEEN MATCHED" % list_of_dict_names[nam]))
         else:
             print(red_text("The following has not been matched"))
             for k2, v2 in dict_name.items():
+                print(k2, v2)
                 print(red_text("$s - %s" % (k2, v2)))
 
         all_values = []
         for k in h_lines.keys():
-            if len(h_lines[k][counter:]) > 1:
+            if  len(h_lines[k][counter:]) == 1:
+                # print(green_text("MATCH %.3f - %s" % (k, h_lines[k])))
+                continue
+            elif len(h_lines[k][counter:]) > 1:
                 print(red_text("PLEASE CHECK %.3f - %s" % (k, h_lines[k])))
-                all_values.append([' ? '.join(h_lines[k][counter:])])
-                a = ([' ? '.join(h_lines[k][counter:])])
-                h_lines[k][counter:] = a
+                if h_lines[k][counter:][1] == h_lines[k][counter:][0]:
+                    print(green_text("Considered as similar environment - %s" % h_lines[k][counter:][1]))
+                    all_values.append(h_lines[k][counter:][1])
+                    a = (h_lines[k][counter:][1])
+                    h_lines[k][counter:][1] = a
+                else:
+                    print(h_lines[k][counter:])
+                    all_values.append([' ? '.join(h_lines[k][counter:])])
+                    a = ([' ? '.join(h_lines[k][counter:])])
+                    h_lines[k][counter:] = a
             else:
                 all_values.append(h_lines[k][counter:])
 
@@ -930,9 +1019,17 @@ def write_to_csv(h_lines, env, color, unique_loc):
             if v[0] < k1 < v[1]:
                 cat_val.append(v1)
         x = Counter(cat_val)
-        cat_dict = (dict([((i, round(x[i] / len(cat_val) * 100.0))) for i in x]))
-        val = (sorted(cat_dict.items(), key=lambda x: x[1], reverse = True))
+        cat_dict = (dict([((i, round(x[i] / len(cat_val) * 100.0))) for i in x])) # Change counter mode to %
+        cat_dict = dict((litho_legend[key], value) for (key, value) in cat_dict.items()) # Change RGB to Lithology name
+        val = (sorted(cat_dict.items(), key=lambda x: x[1], reverse=True)) # Value to return to Dictionary
         h_lines[k].append(val)
+
+    # CLEANING BLANK SPACE FROM CSV
+    for k, v in list(h_lines.items()):
+        # print(len(v[3]), list(v[3][0])[0])
+        # if len(v[3]) == 1 and list(v[3][0])[0] == 'Blank Space' and list(v[3][0])[1] == 99:
+        if list(v[3][0])[0] == 'Blank Space' and list(v[3][0])[1] in [99, 100]:
+            del h_lines[k]
 
     print(unique_loc)
     from collections import Counter
@@ -948,11 +1045,15 @@ def write_to_csv(h_lines, env, color, unique_loc):
         h_lines[k].append(x)
 
     # print(h_lines)
-    for k, v in h_lines.items():
-        for i in np.arange(v[0], v[1], 1):
-            # t = (bisect.bisect_left(list(color.keys()), i))
-            maybe = color.get(i) or color[min(color.keys(), key=lambda k: abs(k-i))]
-            print('%.4f %s %s' % (i, v[2:], maybe))
+    # for k, v in h_lines.items():
+    #     for i in np.arange(v[0], v[1], 1):
+    #         # t = (bisect.bisect_left(list(color.keys()), i))
+    #         maybe = color.get(i) or color[min(color.keys(), key=lambda k: abs(k-i))]
+    #         if maybe in litho_legend:
+    #             litho = litho_legend[maybe]
+    #         else:
+    #             litho = maybe
+    #         print('%.4f %s %s' % (i, v[2:], litho))
 
     LAS_output = os.path.join(os.path.dirname(pdf_name), 'LAS_output.csv')
     with open(LAS_output,'w') as writecsv:
@@ -961,7 +1062,12 @@ def write_to_csv(h_lines, env, color, unique_loc):
         for k, v in h_lines.items():
             for i in np.arange(v[0], v[1], 1):
                 maybe = color.get(i) or color[min(color.keys(), key=lambda k: abs(k - i))]
-                writer.writerow([i, v[2], maybe, v[4], v[3]])
+                if maybe in litho_legend:
+                    litho = litho_legend[maybe]
+                else:
+                    litho = maybe
+                writer.writerow([i, v[2], litho, v[4], v[3]])
+                print('%.4f \t%s \t%s \t%s \t%s' % (i, v[2], litho, v[4], v[3]))
     writecsv.close()
 
     layered_output = os.path.join(os.path.dirname(pdf_name), 'Layered_output.csv')
@@ -970,9 +1076,12 @@ def write_to_csv(h_lines, env, color, unique_loc):
         writer.writerow(["Depth To(m)", "Depth From (m)", "Depositional Environment", "Lithology (Mid Depth)", "Biogenic", "Percentages"])
         for k, v in h_lines.items():
             i = (v[0] + v[1]) / 2
-            # for i in np.arange(v[0], v[1], 1):
             maybe = color.get(i) or color[min(color.keys(), key=lambda k: abs(k - i))]
-            writer.writerow([v[0], v[1], v[2], maybe, v[4], v[3]])
+            if maybe in litho_legend:
+                litho = litho_legend[maybe]
+            else:
+                litho = maybe
+            writer.writerow([v[0], v[1], v[2], litho, v[4], v[3]])
     writecsv.close()
 
 
