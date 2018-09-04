@@ -4,7 +4,7 @@
 # Python Script initially created on 12/05/2018
 # Compiled by Aly @ Grasselli's Geomechanics Group, UofT, 2018
 # Created using PyCharm // Tested on Spyder
-# Current Version 06 - Dated August 16, 2018
+# Current Version 06 - Dated August 21, 2018
 # /////////////////////////////////////////////////////////////// #
 
 # This code was compiled based on the layout of d_66_I_94_B_16_Continuous_Core Log
@@ -26,17 +26,22 @@ from operator import itemgetter
 from itertools import permutations
 from scipy.spatial import distance
 from PIL import Image
+import PIL.ImageOps
 from collections import Counter
 import numpy as np
 import pdfminer
 import time
 import os
+import fnmatch
 import imutils
 import cv2
 import random
 import webcolors
 import csv
 import math
+import sys
+import argparse
+import platform
 
 # START OF EXECUTION
 abs_start = time.time()
@@ -46,25 +51,18 @@ locations = {'Name:': [475, 56], 'Well Location:': [100, 42], 'Fm/Strat. Unit:':
 
 # Abbreviation of the Dep. Env. / Sedimentary Facies
 # Will display an error if the text recognised in the Env. column is not in this list.
-env_list = ['H', 'O', 'OTD', 'OTP', 'T. Lag', 'Ramp', 'Distal Ramp', 'T', 'Temp', 'OT', 'LS', 'Turb', 'Temps', 'Seismite', 'Fluidized Flow']
+env_list = ['H', 'O', 'OTD', 'OTP', 'T. Lag', 'Ramp', 'Distal Ramp', 'T', 'Temp', 'OT', 'LS', 'Turb', 'Temps', 'Seismite', 'Fluidized Flow', 'Hemipelagite', 'Tempestites', 'Tempestite']
 
 # Resolutions
 h_resol = 600
 resol = 300
 
 # DICTIONARY
-litho_legend = {"skyblue": "Laminated Bedded Resedimented Bioclasts", "sandybrown": "Bituminous F-C Siltstone", "tan": "Bituminous F-M Siltstone", "khaki": "Sandy F-C Siltstone to Silty VF Sandstone", "darkseagreen": "Phosphatic - Bituminous Sandy Siltstone to Breccia", "plum": "Calcareous - Calcispheric Dolosiltstone", "white": "Blank Space", "black": "Hz Line"}
+litho_legend = {"skyblue": "Laminated Bedded Resedimented Bioclasts", "sandybrown": "Bituminous F-C Siltstone", "tan": "Bituminous F-M Siltstone", "khaki": "Sandy F-C Siltstone to Silty VF Sandstone", "darkseagreen": "Phosphatic - Bituminous Sandy Siltstone to Breccia", "plum": "Calcareous - Calcispheric Dolosiltstone", "darkkhaki": "Bituminous F-M Siltstone", "goldenrod": "Bituminous F-C Siltstone", "white": "Blank Space", "black": "Hz Line"}
 # excluded_colors = [(255, 255, 255), (36, 31, 33), (94, 91, 92), (138, 136, 137), (197, 195, 196), (187, 233, 250), (26, 69, 87)]  # exclusion colors from mapping [(White), (Black), (Dim Grey), (Grey), (Silver), (paleturquoise), (darkslategray)]
-defined_color_map = [(201, 163, 127), (250, 166, 76), (122, 176, 222), (255, 245, 135), (199, 161, 201), (156, 212, 173), (255, 255, 255), (36, 31, 33)]  # Defined colrs [(tan), (sandybrown), (skyblue), (khaki), (plum), (darksgreen)]
+# defined_color_map = [(201, 163, 127), (250, 166, 76), (122, 176, 222), (255, 245, 135), (199, 161, 201), (156, 212, 173), (255, 255, 255), (36, 31, 33), (35, 31, 32)]  # Defined colors [(tan), (sandybrown), (skyblue), (khaki), (plum), (darksgreen)]
+defined_color_map = [(210, 180, 140), (244, 164, 96), (135, 206, 235), (240, 230, 140), (143, 188, 143), (221, 160, 221), (218, 165, 32), (189, 183, 107), (255, 255, 255), (0, 0, 0)]
 
-
-# Open a PDF file.
-# pdf_name = '/home/aly/Desktop/log2/d_66/d_66_I_94_B_16_Continuous_Core.pdf'
-pdf_name = '/home/aly/Desktop/log2/talisman/Talisman c-65-F_Page 1.pdf'
-# pdf_name = "/home/aly/Desktop/log2/lily/Lily a-9-J_Core 2_Page 4 of 13.pdf"
-# pdf_name = 'C:/Users/alica/Desktop/log2/d_66/d_66_I_94_B_16_Continuous_Core.pdf'
-# pdf_name = 'C:/Users/alica/Desktop/log2/talisman/Talisman_c-65-F_Page_1.pdf'
-# pdf_name = "C:/Users/alica/Desktop/log2/lily/Lily a-9-J_Core 2_Page 4 of 13.pdf"
 
 '''
 GLOBAL OPENING OF FILE
@@ -73,7 +71,12 @@ GLOBAL OPENING OF FILE
 - Load file
 '''
 
-fp = open(pdf_name, 'rb')
+
+def open_file(f_name):
+    global pdf_name, fp
+    pdf_name = f_name
+    fp = open(pdf_name, 'rb')
+    initial_processing()
 
 '''
 TIMER FUNCTION
@@ -83,9 +86,9 @@ TIMER FUNCTION
 def calc_timer_values(end_time):
     minutes, sec = divmod(end_time, 60)
     if end_time < 60:
-        return "\033[1m%.2f seconds\033[0m" % end_time
+        return bold_text("%.2f seconds" % end_time)
     else:
-        return "\033[1m%d minutes and %d seconds\033[0m." % (minutes, sec)
+        return bold_text("%d minutes and %d seconds" % (minutes, sec))
 
 
 '''
@@ -212,7 +215,6 @@ def parse_obj(lt_objs):
                     depths[int(y_mid_height)] = int(obj.get_text().replace('\n', ''))
                 except ValueError:
                     print(red_text("Error in Depth Column\nPossible text detected:\t %s" % obj.get_text().replace('\n', '_')))
-                    # exit("Status 10 - Text identified in the Depth Column. Please change value of y_loc.")
 
     # Sort by location in the column
     # Separate the OCR depth from the point location
@@ -304,7 +306,7 @@ def parse_obj(lt_objs):
         elif '/' in v:
             print('Possibly Dual Environment \t %0.3f - %s' % (k, v))
             a = v.split('/')
-            print(red_text('Found Possible matches %s') % ' and '.join(a))
+            print(green_text('Found Possible matches %s') % ' and '.join(a))
             env_matches[k] = ' / '.join(a)
             for i in a:
                 if i in env_list or i == '':  # If only one string found, or blank space encountered, continue.
@@ -317,7 +319,7 @@ def parse_obj(lt_objs):
                             print(red_text('Found Possible matches %s') % ' and '.join(b))
                             env_matches[k] = ' / '.join(b)
         else:
-            print('UNKNOWN %0.3f - %s' % (k, v))
+            print(red_text('UNKNOWN %0.3f - %s' % (k, v)))
 
     env_matches = OrderedDict(sorted(env_matches.items()))
     # DISPLAY the entire environment matches {DEPTH : VALUE}
@@ -325,7 +327,6 @@ def parse_obj(lt_objs):
     print('Depth (m) : Environment')
     for key in env_matches:
         print("%.3f : %s" % (key, bold_text(env_matches[key])))
-    # exit (10)
 
 
 '''
@@ -374,16 +375,13 @@ def check_depth_column(name, list_values):
             if x < len(list_values) - 1:
                     if list_values[x] < list_values[x + 1]:
                         print("Check the depth values for Typos")
-                        # exit(11)
-    # unique_values = len(set(np.diff(list_values)))
-    # diff = abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values))))
+
     if len(set(np.diff(list_values))) == 1 or abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values)))) < 2:
         print(green_text("\n%s in the Depth Column checked" % name))
     # elif abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values)))) < 2:
     #     print("MINOR Error in scale of %s, off by %s units" % (name, diff))
     else:
         print(red_text("Status 12 - Possible error in scale of %s.\nValues are %s" % (name, np.diff(list_values))))
-        # exit("Status 12 - MINOR Error in scale of %s, off by %s units\nValues are %s" % (name, diff, np.diff(list_values)))
     return np.diff(list_values)
 
 
@@ -455,24 +453,6 @@ def initial_processing():
 
         # Increase page count
         page_count += 1
-
-
-'''
-CONVERT PDF TO PNG
-
-- Loads PDF log and returns PNG at specified resolution
-'''
-
-
-def convert(f_name, conv_resol):
-    global fil_name
-    from wand.image import Image
-    from wand.color import Color
-    with Image(filename=f_name, resolution=conv_resol) as img:
-        with Image(width=img.width, height=img.height, background=Color("white")) as bg:
-            bg.composite(img, 0, 0)
-            bg.save(filename=os.path.splitext(f_name)[0] + '_python_convert.png')
-    fil_name = os.path.splitext(f_name)[0] + '_python_convert.png'
 
 
 '''
@@ -591,7 +571,6 @@ def matching(match_fil_name, folder, threshold):
     print("Found %s matches." % bold_text(len(unique)))
 
     # Write image showing the location of the detected matches.
-    # output_file_name = str(os.path.basename(folder)) + '_detected %s' % os.path.basename(name)
     output_file_name = str(os.path.basename(folder) + '_detected.png')
     cv2.imwrite(os.path.join(os.path.dirname(match_fil_name), output_file_name), img_bgr)
     print(bold_text("Detected image saved.\n"))
@@ -627,6 +606,29 @@ def recursiveCoord(_coordinateList, threshold):
 
 
 '''
+FIND / RENAME MODULE
+
+- Inverted images are converted using pdftoppm utility to convert PDF to PIL Image object.
+- Utility does not allow for file name handling, name found by extension and then name changed.
+'''
+
+
+def find(pattern, path):
+    result = []
+    for root, dirs, files in os.walk(path):
+        for name in files:
+            if fnmatch.fnmatch(name, pattern):
+                result.append(os.path.join(root, name))
+    return result
+
+def rename(new_f_name):
+    names = find('*-1.png', os.path.dirname(new_f_name))
+    fil_name = os.path.splitext(new_f_name)[0] + '_python_convert.png'
+    for i in names:
+        os.rename(i, os.path.join(os.path.dirname(new_f_name), fil_name))
+    return names
+
+'''
 CONVERT PDF TO PNG
 
 - Loads PDF log and returns PNG at specified pixel
@@ -634,14 +636,38 @@ CONVERT PDF TO PNG
 
 
 def convert(f_name, conv_resol):
-    global fil_name
+    global fil_name, look_for
     from wand.image import Image
     from wand.color import Color
-    with Image(filename=f_name, resolution=conv_resol) as img:
-        with Image(width=img.width, height=img.height, background=Color("white")) as bg:
-            bg.composite(img, 0, 0)
-            bg.save(filename=os.path.splitext(f_name)[0] + '_python_convert.png')
-    fil_name = os.path.splitext(f_name)[0] + '_python_convert.png'
+    import wand.exceptions
+    from pdf2image import convert_from_path, convert_from_bytes
+
+    try:
+        with Image(filename=f_name, resolution=conv_resol) as img:
+            with Image(width=img.width, height=img.height, background=Color("white")) as bg:
+                bg.composite(img, 0, 0)
+                # bg.alpha_channel = False
+                bg.save(filename=os.path.splitext(f_name)[0] + '_python_convert.png')
+        fil_name = os.path.splitext(f_name)[0] + '_python_convert.png'
+    except wand.exceptions.CorruptImageError or TypeError:
+        print(red_text("INVERTED IMAGE - PDF File maybe corrupted"))
+        convert_from_path(f_name, dpi=conv_resol, output_folder=os.path.join(os.path.dirname(f_name)), first_page=1,
+                          last_page=None, fmt='png')
+        rename(f_name)
+        fil_name = os.path.splitext(f_name)[0] + '_python_convert.png'
+
+    if platform.system() == "Linux":
+        im = PIL.Image.open(fil_name)
+        rgb_im_neg = im.convert('RGB')
+        if get_colour_name(rgb_im_neg.getpixel((5,5)))[1] == 'black':
+            print(red_text('Negative Image\nConverting Image'))
+            convert_from_path(f_name, dpi=conv_resol, output_folder=os.path.join(os.path.dirname(f_name)), first_page=1,
+                              last_page=None, fmt='png')
+            rename(f_name)
+        im.close()
+        fil_name = os.path.splitext(f_name)[0] + '_python_convert.png'
+
+    look_for = 'black'
 
 
 '''
@@ -676,87 +702,6 @@ def coeff(mx, my):
 
 
 '''
-PROCESS THE HORIZONTAL LINES
-
-- Checks for the horizontal lines in the PDF log (ALL_PNG)
-- Checks for the horizontal lines in the PDF log (ENV_PNG)
-- Will TERMINATE if the line COUNT is different. Meaning, the code/log has to be examined thoroughly. 
-- If the lines mismatch in depth, a warning will be displayed. 
-'''
-
-
-def processing_HZ_lines():
-    print(green_text("\nProcessing Hz lines - PNG Mode"))
-    HZ_lines = {}
-    print("Image Loaded - Dimensions %s px X %s px @ %s dpi.\nPixel to Point ratio is: %.3f" % (width, height, 300, ratio_px_pt))
-    approx_x = {1530: ['ALL_PNG', 745, 1], 2370: ['ENV_PNG', 100, 100]}  # FATAL ERROR IS TRACED To HERE!
-
-    # Save location if black is identified along the height at the approx X location
-    for k, v in approx_x.items():
-        location_to_check = []
-        black_lines = []
-        for j in range(0, height):
-            # print(j, rgb_im.getpixel((1530, j)))
-            if rgb_im.getpixel((k, j)) == (36, 31, 33):
-                black_lines.append(int(j))
-
-        # Check if the locations are after one another and group them
-        possible_black_lines = group_runs(black_lines)
-
-        # After grouping, check the center point of the line.
-        for i in possible_black_lines:
-            # print(i)  # DISPLAY Location of possible black lines.
-            location_to_check.append((sum(i) / len(i)))
-
-        # Check along the X of those locations
-        bed(k, v[1], v[2], location_to_check)
-        # The return variable is based on the approx_x name
-        HZ_lines[v[0]] = contact_type
-
-    ALL_PNG = (HZ_lines['ALL_PNG'])
-    ENV_PNG = (HZ_lines['ENV_PNG'])
-
-    # Checks to ensure the number of lines in ALL_PNG and ENV_PNG are the same.
-    # If NOT TERMINATES
-    # If the same count but at different depth, will return a warning.
-    if len(ALL_PNG) == len(ENV_PNG):
-        for x in range(len(ALL_PNG)):
-            if -10 < ALL_PNG[x] - ENV_PNG[x] < 10:
-                continue
-            else:
-                print(ALL_PNG[x], ENV_PNG[x], "Non match")
-    else:
-        print(red_text("LINE IN ALL PNG AND ENV PNG DO NOT MATCH"))
-        print(list(set(ALL_PNG) - set(ENV_PNG)))
-        exit("FATAL ERROR!")
-
-    # DISPLAY Location of Hz black lines.
-    # print("\nDepth of identified Hz lines (m)")
-    # for i in ALL_PNG:
-    #     print("%0.3f" % i)
-
-    # Transform the identified HZ lines into groups.
-    # TOP : [TOP, BOTTOM]
-    final_dict = {}
-
-    zipped = list(zip(ALL_PNG, ALL_PNG[1:]))
-
-    for a, x in enumerate(ALL_PNG):
-        if a < (len(ALL_PNG) - 1):
-            final_dict[x] = list(zipped[a])
-
-    global overall_dictionary
-
-    overall_dictionary = OrderedDict(sorted(final_dict.items()))
-    print(green_text("\nProcessed Hz lines - PNG Mode\n"))
-
-    # DISPLAY identified layer depths.
-    print(bold_text("Identified Layers\nDepth from (m) : Depth to (m)"))
-    for k, v in overall_dictionary.items():
-        print("%0.3f : %0.3f" % (v[0], v[1]))
-
-
-'''
 CHECK BEDDING
 
 - Loads the location of the black lines
@@ -775,9 +720,9 @@ def bed(approx_x, neg, pos, location_to_check):
         for k in range(approx_x - neg, approx_x + pos):
             bedding_surface.append(rgb_im.getpixel((k, i)))
         # print("%0.3f : %s" % ((m * (height - i) / ratio_px_pt) + c, Counter(bedding_surface).most_common(2)))
-        if Counter(bedding_surface).most_common(1)[0][0] == (36, 31, 33):
+        if get_colour_name(Counter(bedding_surface).most_common(1)[0][0])[1] == look_for:
             contact_type.append((m * (height - i) / ratio_px_pt) + c)
-        elif Counter(bedding_surface).most_common(2)[0][0] == (255, 255, 255) and Counter(bedding_surface).most_common(2)[1][0] == (36, 31, 33) and Counter(bedding_surface).most_common(2)[1][1] / Counter(bedding_surface).most_common(2)[0][1] > 0.8:
+        elif get_colour_name(Counter(bedding_surface).most_common(2)[0][0])[1] == 'white' and get_colour_name(Counter(bedding_surface).most_common(2)[1][0])[1] == look_for and Counter(bedding_surface).most_common(2)[1][1] / Counter(bedding_surface).most_common(2)[0][1] > 0.50:
             # print("WHITE / BLACK")
             contact_type.append((m * (height - i) / ratio_px_pt) + c)
 
@@ -831,26 +776,25 @@ IMAGE COLOR INITIALISATION
 '''
 
 
-def processing(defined_color_map):
+def processing(the_defined_color_map):
     convert(pdf_name, resol)  # Convert pdf at the specified resolution
     load_image(fil_name)  # Load image and obtain necessary information
     ratio()  # Calculate ratio
     color_map = []
-    approx_x = 186 * ratio_px_pt  # Predefined location
-
+    approx_x = 620  # Predefined location
     processing_HZ_lines()
 
-    print(green_text("\nProcessing color column. - PNG Mode"))
+    print(green_text("\nProcessing color column - PNG Mode"))
     print("\nImage Loaded - Dimensions %s px X %s px @ %s dpi.\nPixel to Point ratio is: %.2f" % (width, height, resol, ratio_px_pt))
 
     # Obtain All Colors (1 Color/pixel) in the Lithological Identification
     for j in range(0, height, 1):
-        # print (j, rgb_im.getpixel((approx_x, j)))
+        # print (j, rgb_im.getpixel((approx_x, j)), get_colour_name(rgb_im.getpixel((approx_x, j)))[1])
         color_map.append(rgb_im.getpixel((approx_x, j)))
 
     print("No. of existing colors in Pixel ID %s column is: %s" % (bold_text(approx_x), bold_text(len(set(color_map)))))
 
-    unique_color_map = defined_color_map  # Colors used in cleanup
+    unique_color_map = the_defined_color_map  # Colors used in cleanup
     print("Looking up defined. A total of : %s" % bold_text(len(set(unique_color_map))))
 
     print(bold_text("\nUser defined No. of Colors\n"))
@@ -858,7 +802,99 @@ def processing(defined_color_map):
         print("RGB: %s \t- Closest RGB colour name: %s" % (i, bold_text(get_colour_name(i)[1])))
 
     # MOVE TO NEXT MODULE - IMAGE CLEANUP
+    # print(color_map)
     log_cleanup(color_map, unique_color_map)
+
+
+'''
+PROCESS THE HORIZONTAL LINES
+
+- Checks for the horizontal lines in the PDF log (ALL_PNG)
+- Checks for the horizontal lines in the PDF log (ENV_PNG)
+- Will TERMINATE if the line COUNT is different. Meaning, the code/log has to be examined thoroughly. 
+- If the lines mismatch in depth, a warning will be displayed. 
+'''
+
+
+def processing_HZ_lines():
+    print(green_text("\nProcessing Hz lines - PNG Mode"))
+    HZ_lines = {}
+    print("Image Loaded - Dimensions %s px X %s px @ %s dpi.\nPixel to Point ratio is: %.3f" % (width, height, 300, ratio_px_pt))
+    approx_x = {1525: ['ALL_PNG', 740, 5], 2110: ['ENV_PNG', 515, 355]}  # FATAL ERROR IS TRACED To HERE!
+
+    # Save location if black is identified along the height at the approx X location
+    for k, v in approx_x.items():
+        location_to_check = []
+        black_lines = []
+        for j in range(0, height):
+            # print(j, rgb_im.getpixel((k, j)), get_colour_name(rgb_im.getpixel((k, j)))[1])
+            # print(look_for)
+            if get_colour_name(rgb_im.getpixel((k, j)))[1] == look_for:
+                # print("BLACK LINES", j)
+                black_lines.append(int(j))
+
+        # Check if the locations are after one another and group them
+        possible_black_lines = list(group_runs(black_lines))
+
+        # After grouping, check the center point of the line.
+        for i in (possible_black_lines):
+            # print(i)  # DISPLAY Location of possible black lines.
+            location_to_check.append((sum(i) / len(i)))
+
+        # Check along the X of those locations
+        bed(k, v[1], v[2], location_to_check)
+        # The return variable is based on the approx_x name
+        HZ_lines[v[0]] = contact_type
+
+    ALL_PNG = HZ_lines['ALL_PNG']
+    ENV_PNG = HZ_lines['ENV_PNG']
+
+    # Checks to ensure the number of lines in ALL_PNG and ENV_PNG are the same.
+    # If NOT TERMINATES
+    # If the same count but at different depth, will return a warning.
+    if len(ALL_PNG) == len(ENV_PNG):
+        for x in range(len(ALL_PNG)):
+            if -10 < ALL_PNG[x] - ENV_PNG[x] < 10:
+                continue
+            else:
+                print(ALL_PNG[x], ENV_PNG[x], "Non match")
+    elif abs(len(ENV_PNG) - len(ALL_PNG)) == 1:
+        print((ENV_PNG))  # Print depth of black lines in Environmental deposition
+        print((ALL_PNG))  # Print depth for the remainder of the log.
+        ENV_PNG = ALL_PNG
+        print(red_text("MINOR MISMATCH - PROCEEDING\nPLEASE CHECK THOROUGHLY"))
+    else:
+        print(red_text("LINE IN ALL PNG AND ENV PNG DO NOT MATCH"))
+        if not list(set(ENV_PNG) - set(ALL_PNG)):
+            print(list(set(ENV_PNG) - set(ALL_PNG)))
+        else:
+            print(list(set(ALL_PNG) - set(ENV_PNG)))
+        exit("FATAL ERROR!")
+
+    # DISPLAY Location of Hz black lines.
+    # print("\nDepth of identified Hz lines (m)")
+    # for i in ALL_PNG:
+    #     print("%0.3f" % i)
+
+    # Transform the identified HZ lines into groups.
+    # TOP : [TOP, BOTTOM]
+    final_dict = {}
+
+    zipped = list(zip(ALL_PNG, ALL_PNG[1:]))
+
+    for a, x in enumerate(ALL_PNG):
+        if a < (len(ALL_PNG) - 1):
+            final_dict[x] = list(zipped[a])
+
+    global overall_dictionary
+
+    overall_dictionary = OrderedDict(sorted(final_dict.items()))
+    print(green_text("\nProcessed Hz lines - PNG Mode\n"))
+
+    # DISPLAY identified layer depths.
+    print(bold_text("Identified Layers\nDepth from (m) : Depth to (m)"))
+    for k, v in overall_dictionary.items():
+        print("%0.3f : %0.3f" % (v[0], v[1]))
 
 
 '''
@@ -868,13 +904,25 @@ LOG CLEANUP
 '''
 
 
-def log_cleanup(color_map, unique_color_map):
-    for i in range(1, len(color_map)):
-        if color_map[i] not in unique_color_map:
-            color_map[i] = color_map[i - 1]
+def log_cleanup(cleanup_color_map, unique_color_map):
+
+    for i in range(1, len(cleanup_color_map)):
+        if cleanup_color_map[i] not in unique_color_map:
+            col_nam = get_colour_name(cleanup_color_map[i])[1]
+            cleanup_color_map[i] = (webcolors.name_to_rgb(col_nam)[0], webcolors.name_to_rgb(col_nam)[1], webcolors.name_to_rgb(col_nam)[2])
+        # if get_colour_name(cleanup_color_map[i])[1] == 'darkslategrey':
+        #     cleanup_color_map[i] = (0, 0, 0)
+
+    for i in range(1, len(cleanup_color_map)):
+        if cleanup_color_map[i] not in unique_color_map:
+            cleanup_color_map[i] = cleanup_color_map[i - 1]
+
+    # DISPLAY the cleaned up color map
+    # for x,i in enumerate(cleanup_color_map):
+    #     print(x, get_colour_name(i)[1])
 
     # ## MOVE TO NEXT MODULE - REMOVE LINES
-    remove_black_lines(color_map)
+    remove_black_lines(cleanup_color_map)
 
 
 '''
@@ -886,16 +934,14 @@ REMOVE LINES
 
 
 def remove_black_lines(color_map):
-    # print(color_map)
-    # time.sleep(100)
     location = []
     black_lines, location_to_check = [], []
 
     for j in range(0, height):
-        if color_map[j] == (36, 31, 33):
+        if get_colour_name(color_map[j])[1] == look_for:
             black_lines.append(int(j))
 
-    possible_black_lines = group_runs(black_lines)
+    possible_black_lines = list(group_runs(black_lines))
 
     # After grouping, split line and divide into top and bottom colors.
     for y, i in enumerate(possible_black_lines):
@@ -921,6 +967,48 @@ def remove_black_lines(color_map):
     # for k, v in color_dict.items():
     #     print("%0.3d : %s" % (k, v))
 
+'''
+FACIES CODE
+
+- Criteria based on Dr. Moslow Email
+- Identifies the logic of the facies code, in accordance to the legend
+'''
+
+def facies_code(env_name, litho_color):
+    if env_name == 'LS':
+        f_code = str(1)
+    elif env_name == 'O':
+        f_code = str(2)
+    elif env_name == 'OTP':
+        f_code = str(3)
+    elif env_name in ('OTP/T', 'OTP / T', 'T/OTP', 'T / OTP'):
+        f_code = str(3) + 'A'
+    elif env_name == 'OTD':
+        f_code = str(4)
+    elif env_name in ('OTP/T', 'OTP / T', 'T/OTP', 'T / OTP'):
+        f_code = str(4) + 'A'
+    elif env_name == 'O' and litho_color in ('Bituminous F-C Siltstone'):
+        f_code = str(5) + 'A'
+    elif env_name == 'O' and litho_color in ('Phosphatic - Bituminous Sandy Siltstone to Breccia'):
+        f_code = str(5) + 'B'
+    elif env_name in ('H', 'Hemipelagite'):
+        f_code = str(6)
+    elif env_name in ('Tempestites', 'Tempestite', 'T') and litho_color in ('Sandy F-C Siltstone to Silty VF Sandstone'):
+        f_code = str(7) + 'A'
+    elif env_name in ('Tempestites', 'Tempestite', 'T') and litho_color in ('Laminated Bedded Resedimented Bioclasts'):
+        f_code = str(7) + 'B'
+    elif env_name == 'Seismite':
+        f_code = str(8)
+    elif env_name == 'T. Lag' and litho_color in ("Phosphatic - Bituminous Sandy Siltstone to Breccia"):
+        f_code = str(9) + 'A'
+    elif env_name == 'T. Lag' and litho_color in ('Laminated Bedded Resedimented Bioclasts'):
+        f_code = str(9) + 'B'
+    elif env_name == 'Turb':
+        f_code = str(10)
+    else:
+        f_code = "UNKNOWN"
+    return f_code
+
 
 '''
 OUTPUT TO CSV FORMAT
@@ -931,8 +1019,8 @@ OUTPUT TO CSV FORMAT
 '''
 
 
-def write_to_csv(h_lines, env, color, unique_loc):
-    LAS_Interval = 0.5  # This is the interval that defined how often to output a depth in the LAS File type output.
+def write_to_csv(h_lines, env, color, bl_unique_loc):
+    LAS_Interval = 0.1 # This is the interval that defined how often to output a depth in the LAS File type output.
     print(green_text("\nProcessing CSV Information"))
     # Sort all dictionaries
     h_lines = OrderedDict(sorted(h_lines.items(), key=lambda t: t[0]))
@@ -958,8 +1046,9 @@ def write_to_csv(h_lines, env, color, unique_loc):
             print(green_text("EVERYTHING in %s HAS BEEN MATCHED" % list_of_dict_names[nam]))
         else:
             print(red_text("The following has not been matched"))
-            for k2, v2 in dict_name.items():
-                print(red_text("$s - %s" % (k2, v2)))
+            print(dict_name)
+            # for k2, v2 in dict_name.items():
+            #     print(red_text("$s - %s" % (k2, v2)))
 
         # Parsing the data in the environments.
         # Code is limited by the inconsistency of the 'Enter' values and manual adjustments of the text box.
@@ -969,12 +1058,12 @@ def write_to_csv(h_lines, env, color, unique_loc):
                 # print(green_text("MATCH %.3f - %s" % (k, h_lines[k])))
                 continue
             elif len(h_lines[k][int_counter:]) > 1:
-                print(red_text("PLEASE CHECK %.3f - %s" % (k, h_lines[k])))
+                print(red_text("PLEASE CHECK %.3f - %s" % (k, h_lines[k][2:])))
                 if h_lines[k][int_counter:][1] == h_lines[k][int_counter:][0]:
                     print(green_text("Considered as similar environment - %s" % h_lines[k][int_counter:][1]))  # If same ENV encountered within the same depth interval
                     all_values.append(h_lines[k][int_counter:][1])
-                    a = (h_lines[k][int_counter:][1])
-                    h_lines[k][int_counter:][1] = a
+                    a = ([''.join(h_lines[k][int_counter:][1])])  # Consider them as one.
+                    h_lines[k][int_counter:] = a
                 else:
                     print(h_lines[k][int_counter:])
                     all_values.append([' ? '.join(h_lines[k][int_counter:])])
@@ -1002,7 +1091,8 @@ def write_to_csv(h_lines, env, color, unique_loc):
         val = (sorted(cat_dict.items(), key=lambda y: y[1], reverse=True))  # Value to return to Dictionary
         h_lines[k].append(val)
 
-    # Cleaning black space from being output
+    # Cleaning blank space from being output
+    # If white presentes 99/100 % of the color along that line
     for k, v in list(h_lines.items()):
         if list(v[3][0])[0] == 'Blank Space' and list(v[3][0])[1] in [99, 100]:
             del h_lines[k]
@@ -1019,10 +1109,10 @@ def write_to_csv(h_lines, env, color, unique_loc):
     # Output to LAS File
     # print to Terminal window
     print(green_text("\nFINAL OUTPUT\nLAS FORMAT\n"))
-    LAS_output = os.path.join(os.path.dirname(pdf_name), 'LAS_output.csv')
+    LAS_output = os.path.join(os.path.dirname(pdf_name), os.path.splitext(os.path.basename(pdf_name))[0] + '_LAS_output.csv')
     with open(LAS_output, 'w') as writecsv:
-        writer = csv.writer(writecsv)
-        writer.writerow(["Depth (m)", "Depositional Environment", "Lithology", "No. Biogenic", "Percentages"])
+        writer = csv.writer(writecsv, lineterminator='\n')
+        writer.writerow(["Depth (m)", "Facies Code", "Depositional Environment", "Lithology", "No. Biogenic", "Percentages"])
         for k, v in h_lines.items():
             for i in np.arange(v[0], v[1], LAS_Interval):
                 color_at_def_depth = color.get(i) or color[min(color.keys(), key=lambda z: abs(z - i))]
@@ -1030,17 +1120,45 @@ def write_to_csv(h_lines, env, color, unique_loc):
                     litho = litho_legend[color_at_def_depth]
                 else:
                     litho = color_at_def_depth
-                writer.writerow(["{0:.4f}".format(i), v[2], litho, v[4], v[3]])
-                print('%.4f \t%s \t%s \t%s \t%s' % (i, v[2], litho, v[4], v[3]))  # Print to terminal window
+                f_code = facies_code(v[2], litho)
+                # print('%.1f \t%s \t%s \t%s \t%s' % (round(i, 1), v[2], litho, v[4], v[3]))  # Print to terminal window
+                writer.writerow(["{0:.1f}".format(i), f_code, v[2], litho, v[4]] + v[3])
     writecsv.close()
     print(green_text("LAS output file written"))
 
+    # Output to Modified LAS File
+    # print to Terminal window
+    print(green_text("\nFINAL OUTPUT\nMODIFIED LAS FORMAT\n"))
+    LAS1_output = os.path.join(os.path.dirname(pdf_name),
+                               os.path.splitext(os.path.basename(pdf_name))[0] + '_modified_LAS_output.csv')
+    with open(LAS_output, 'r+') as readcsv:
+        reader = csv.reader(readcsv)
+        pre_line = next(reader)
+        with open(LAS1_output, 'w') as writecsv:
+            writer = csv.writer(writecsv, lineterminator='\n')
+            # for lines in reader:
+            while (True):
+                try:
+                    cur_line = next(reader)
+                    if pre_line[0] == cur_line[0]:
+                        # print("Overlap at %sm" % pre_line[0])  # DISPLAY Overlap
+                        pass
+                    else:
+                        writer.writerow(pre_line)
+                    pre_line = cur_line
+                except:
+                    break
+            writer.writerow(cur_line)
+    writecsv.close()
+    readcsv.close()
+    print(green_text("Modified LAS output file written"))
+
     # Output to CSV File as depth interval
     print(green_text("\nFINAL OUTPUT\nLAYER INTERVAL FORMAT\n"))
-    layered_output = os.path.join(os.path.dirname(pdf_name), 'Layered_output.csv')
+    layered_output = os.path.join(os.path.dirname(pdf_name), os.path.splitext(os.path.basename(pdf_name))[0] + '_Layered_output.csv')
     with open(layered_output, 'w') as writecsv:
-        writer = csv.writer(writecsv)
-        writer.writerow(["Depth To(m)", "Depth From (m)", "Depositional Environment", "Lithology (Mid Depth)", "Biogenic", "Percentages"])
+        writer = csv.writer(writecsv, lineterminator='\n')
+        writer.writerow(["Depth From (m)", "Depth To (m)", "Depositional Environment", "Lithology (Mid Depth)", "Biogenic", "Percentages"])
         for k, v in h_lines.items():
             i = (v[0] + v[1]) / 2
             color_at_def_depth = color.get(i) or color[min(color.keys(), key=lambda n: abs(n - i))]
@@ -1048,8 +1166,8 @@ def write_to_csv(h_lines, env, color, unique_loc):
                 litho = litho_legend[color_at_def_depth]
             else:
                 litho = color_at_def_depth
-            writer.writerow(["{0:.4f}".format(v[0]), "{0:.4f}".format(v[1]), v[2], litho, v[4], v[3]])
-            print("%.4f\t-\t%.4f : %s\t%s\t%s\t%s" % (v[0], v[1], v[2], litho, v[4], v[3]))
+            # print("%.1f\t-\t%.1f : %s\t%s\t%s\t%s" % (v[0], v[1], v[2], litho, v[4], v[3])) # Print to terminal window
+            writer.writerow(["{0:.1f}".format(v[0]), "{0:.1f}".format(v[1]), v[2], litho, v[4]] + v[3])
     writecsv.close()
     print(green_text("Depth interval output file written"))
 
@@ -1060,10 +1178,25 @@ MAIN MODULE
 - Returns total time and Error on user termination.
 '''
 
+def main(argv):
+    # Parse arguments from user
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', '--file', type=str, required=True,
+                        help="Path to PDF file for processing")
+    try:
+        args = parser.parse_args()
+    except:
+        parser.print_help()
+        sys.exit(2)
+    try:
+        open_file(args.file)
+    except (TypeError, FileNotFoundError):
+        print(red_text('Incorrect file name/type'))
+        exit(3)
 
 if __name__ == "__main__":
     try:
-        initial_processing()
+        sys.settrace(main(sys.argv[1:]))
         print("\nTotal Execution time: \033[1m%s\033[0m\n" % calc_timer_values(time.time() - abs_start))
     except KeyboardInterrupt:
         exit("TERMINATED BY USER")
