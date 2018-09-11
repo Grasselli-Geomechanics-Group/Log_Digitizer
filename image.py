@@ -266,15 +266,17 @@ def parse_obj(lt_objs):
             if int(obj.bbox[0]) in range(520, 535) and int(obj.bbox[1]) < y_loc:
                 # text, location = "%.3f, %s" % (m * obj.bbox[1] + c, obj.get_text().replace('\n', '_'))
                 # print("%.3f, %s" % (m * obj.bbox[1] + c, obj.get_text().replace('\n', '_')))
+                # print(m * obj.bbox[1] + c, m * obj.bbox[3] + c)
                 y_mid_height = (obj.bbox[1] + obj.bbox[3]) / 2
                 texts[m * y_mid_height + c] = obj.get_text().replace('\n', '_')
                 if obj.get_text().replace('\n', '_').count('_') == 1:
                     dys.append(abs(obj.bbox[1] - obj.bbox[3]))
+                    print(abs(obj.bbox[1] - obj.bbox[3]), obj.get_text().replace('\n', '_'))
                 # print(obj.bbox[1], obj.bbox[1] / ratio, obj.get_text().replace('\n', '_'))
 
     # for k,v in texts.items():
     #     print(k,v)
-    dy = math.floor(sum(dys) / len(dys))
+    dy = (sum(dys) / len(dys))
 
     print(bold_text("\nValidating OCR in Environment Column\n"))
     if dys:
@@ -286,14 +288,16 @@ def parse_obj(lt_objs):
             underscore_list.pop()  # Remove the last '_'
             del texts[key]  # Delete that key from the dictionary
             # Adjust Y location based on the number of manual enters within the text box.
+            print(m * dy)
             for loc, i in enumerate(underscore_list):
-                delta = (m * dy) * ((len(underscore_list) - loc) - (len(underscore_list) / 2) - 0.5)
+                delta = (m * (dy * ((len(underscore_list) - loc) - (len(underscore_list) / 2) - 0.5)))
+                print(key, delta, key + delta, loc, i)
                 texts[key + delta] = i
         else:
             if v.endswith('_'):
                 v = v[:-1]
                 texts[key] = v.replace('_', ' ')
-
+    # exit(50)
     # create a list of all possible permutations of the environment, based on sets of 2.
     comb = permutations(env_list, 2)
     global env_matches
@@ -1181,7 +1185,7 @@ MAIN MODULE
 def main(argv):
     # Parse arguments from user
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', type=str, required=True,
+    parser.add_argument('-f', '--file', type=str, required=False, default="/home/aly/Desktop/log2/lily/Lily a-9-J_Core 2_Page 4 of 13.pdf",
                         help="Path to PDF file for processing")
     try:
         args = parser.parse_args()
