@@ -1,0 +1,28 @@
+20180910 - Version 06
+The identification of the scale is now automated.
+The script uses OCR to identify the depth and the depositional environment.
+Fixed issue with different size (length) logs.
+Fixed issue of description spanning to the extremities of the log.
+Change in algorithm of the script.
+Vigorous quality control measures.
+Parsing OCR data.
+Return facies code.
+
+20180724 - Version 05
+PDF conversion is completely housed within the script.
+Code optimization. Split into different modules.
+Modules run for different pixel columns as defined.
+Identifies deposition bedding type.
+Adjust scale based on DPI.
+Code optimization. Algorithm changed.
+Changed colours in terminal outputs.
+PDF split into MediaBOX to obtain higher resolution images during template matching.
+Template matching functional.
+Write Sediment and Environment to CSV.
+Code optimization. Algorithm changed.
+Added the colour code of the matching templates overlay to the Python terminal output.
+Scaling template from 90% to 110% to look for possible matches.
+Fixed issue with different size (length) logs.
+
+20180514 - Version 01
+Initial release of the script
