@@ -260,6 +260,8 @@ def parse_obj(lt_objs):
     - Will show error if it can not understand the text OR the "/" is at the start or end of the string.
     '''
 
+    ''' CONSIDER THIS IN A POOL'''
+
     texts, dys = {}, []
     for obj in lt_objs:
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
@@ -271,7 +273,7 @@ def parse_obj(lt_objs):
                 texts[m * y_mid_height + c] = obj.get_text().replace('\n', '_')
                 if obj.get_text().replace('\n', '_').count('_') == 1:
                     dys.append(abs(obj.bbox[1] - obj.bbox[3]))
-                    print(abs(obj.bbox[1] - obj.bbox[3]), obj.get_text().replace('\n', '_'))
+                    # print(abs(obj.bbox[1] - obj.bbox[3]), obj.get_text().replace('\n', '_'))
                 # print(obj.bbox[1], obj.bbox[1] / ratio, obj.get_text().replace('\n', '_'))
 
     # for k,v in texts.items():
@@ -288,10 +290,10 @@ def parse_obj(lt_objs):
             underscore_list.pop()  # Remove the last '_'
             del texts[key]  # Delete that key from the dictionary
             # Adjust Y location based on the number of manual enters within the text box.
-            print(m * dy)
+            # print(m * dy)
             for loc, i in enumerate(underscore_list):
                 delta = (m * (dy * ((len(underscore_list) - loc) - (len(underscore_list) / 2) - 0.5)))
-                print(key, delta, key + delta, loc, i)
+                # print(key, delta, key + delta, loc, i)
                 texts[key + delta] = i
         else:
             if v.endswith('_'):
@@ -441,7 +443,12 @@ def initial_processing():
 
         # read the page into a layout object
         # receive the LTPage object for this page
+        # from multiprocessing.dummy import Pool as ThreadPool
+        # pool = ThreadPool(4)
         interpreter.process_page(page)
+        # pool.close()
+        # pool.join()
+
         # layout is an LTPage object which may contain child objects like LTTextBox, LTFigure, LTImage, etc.
         layout = device.get_result()
 
@@ -510,6 +517,10 @@ def cropping_pdf():
         # Load image, template folder and execute matching module using biogenic parameters and threshold
         cropped_pdf_image = (os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log_python_convert.png"))
         template_folder = os.path.join((os.path.dirname(os.path.splitext(pdf_name)[0])), "templates")
+        if not os.path.exists(template_folder):  # Check to see if the folder exists
+            os.makedirs(template_folder)  # if not then makes the folder
+            shutil.copyfile('/home/aly/Desktop/log2/a9j/templates/bio_04.png', template_folder)
+        # template_folder = os.path.join((os.path.dirname(os.path.splitext(pdf_name)[0])), "templates")
         matching(cropped_pdf_image, template_folder, 0.70)  # match => pdf_image, folder holding template, matching threshold
 
 
@@ -626,10 +637,12 @@ def find(pattern, path):
     return result
 
 def rename(new_f_name):
+    time.sleep(5)
     names = find('*-1.png', os.path.dirname(new_f_name))
     fil_name = os.path.splitext(new_f_name)[0] + '_python_convert.png'
     for i in names:
         os.rename(i, os.path.join(os.path.dirname(new_f_name), fil_name))
+        # print(os.rename(i, os.path.join(os.path.dirname(new_f_name), fil_name)))
     return names
 
 '''
@@ -671,6 +684,7 @@ def convert(f_name, conv_resol):
         im.close()
         fil_name = os.path.splitext(f_name)[0] + '_python_convert.png'
 
+    # print(fil_name)
     look_for = 'black'
 
 
@@ -799,9 +813,9 @@ def processing(the_defined_color_map):
     print("No. of existing colors in Pixel ID %s column is: %s" % (bold_text(approx_x), bold_text(len(set(color_map)))))
 
     unique_color_map = the_defined_color_map  # Colors used in cleanup
-    print("Looking up defined. A total of : %s" % bold_text(len(set(unique_color_map))))
+    print("Looking up a total of %s defined colors." % bold_text(len(set(unique_color_map))))
 
-    print(bold_text("\nUser defined No. of Colors\n"))
+    print(bold_text("\nUser defined Colors:\n"))
     for i in unique_color_map:
         print("RGB: %s \t- Closest RGB colour name: %s" % (i, bold_text(get_colour_name(i)[1])))
 
@@ -863,17 +877,24 @@ def processing_HZ_lines():
             else:
                 print(ALL_PNG[x], ENV_PNG[x], "Non match")
     elif abs(len(ENV_PNG) - len(ALL_PNG)) == 1:
-        print((ENV_PNG))  # Print depth of black lines in Environmental deposition
-        print((ALL_PNG))  # Print depth for the remainder of the log.
-        ENV_PNG = ALL_PNG
         print(red_text("MINOR MISMATCH - PROCEEDING\nPLEASE CHECK THOROUGHLY"))
-    else:
-        print(red_text("LINE IN ALL PNG AND ENV PNG DO NOT MATCH"))
-        if not list(set(ENV_PNG) - set(ALL_PNG)):
-            print(list(set(ENV_PNG) - set(ALL_PNG)))
+        if not (list(set(ENV_PNG) - set(ALL_PNG))):
+            print(red_text("Check Depths: \t%s" % list(set(ALL_PNG) - set(ENV_PNG))))
         else:
-            print(list(set(ALL_PNG) - set(ENV_PNG)))
-        exit("FATAL ERROR!")
+            print(red_text("Check Depths in Environment Column: \t%s" % list(set(ENV_PNG) - set(ALL_PNG))))
+        # print((ENV_PNG))  # Print depth of black lines in Environmental deposition
+        # print((ALL_PNG))  # Print depth for the remainder of the log.
+        ENV_PNG = ALL_PNG
+    else:
+        print(red_text("LINE IN ALL PNG AND ENV PNG DO NOT MATCH\nPROCEED WITH CAUTION\nThe following depths indicate discrepancy"))
+        if not list(set(ENV_PNG) - set(ALL_PNG)):
+            print("Check Horizontal Depths at: \t%s" % list(set(ENV_PNG) - set(ALL_PNG)))
+        else:
+            print("Check Horizontal Depths at: \t%s" % list(set(ALL_PNG) - set(ENV_PNG)))
+        ENV_PNG = ALL_PNG
+
+
+        # exit("FATAL ERROR!")
 
     # DISPLAY Location of Hz black lines.
     # print("\nDepth of identified Hz lines (m)")
@@ -1176,6 +1197,21 @@ def write_to_csv(h_lines, env, color, bl_unique_loc):
     print(green_text("Depth interval output file written"))
 
 
+def findSubdirectories(dir_path):
+    sub_dirs = []
+    for root, dirs, files in os.walk(dir_path):
+        # for dir_name in dirs:
+        for filename in files:
+            if filename.endswith(('.pdf')):
+
+                # print (os.path.join(root,name))
+                sub_dirs.append(os.path.join(root, filename))
+                # print (os.path.join(root,name))
+                # sub_dirs.append(os.path.join(root, dir_name, filename))
+    sub_dirs = sorted(list(set(sub_dirs))) # Sort directories alphabetically in ascending order
+    print("Found \033[1m%s\033[0m sub-directories" % len(sub_dirs))
+    return sub_dirs
+
 '''
 MAIN MODULE
 
@@ -1185,22 +1221,58 @@ MAIN MODULE
 def main(argv):
     # Parse arguments from user
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', type=str, required=False, default="/home/aly/Desktop/log2/lily/Lily a-9-J_Core 2_Page 4 of 13.pdf",
+    parser.add_argument('-f', '--file', type=str, required=False,
                         help="Path to PDF file for processing")
-    try:
-        args = parser.parse_args()
-    except:
-        parser.print_help()
-        sys.exit(2)
-    try:
-        open_file(args.file)
-    except (TypeError, FileNotFoundError):
-        print(red_text('Incorrect file name/type'))
-        exit(3)
+    parser.add_argument('-b', '--batch', action="store_true",
+                        help="Batch process of output files in the subdirectories of the given directory")
+    args = parser.parse_args()
+    # try:
+
+    # If '.' is specified, the current directory is used as the directory path
+    if args.file == '.':
+        args.file = os.getcwd()
+
+    # Placeholder for the list of directory(ies). Change relative path to absolute path.
+    directories = [os.path.abspath(args.file)]
+
+    # If batch processing, we'll need to do the analysis on all subdirectories of the given directory
+    if args.batch:
+        print('\nBatch processing...\n')
+
+        directories = findSubdirectories(os.path.abspath(args.file))
+
+    # Loop over directory(ies)
+    if directories is not None and directories:
+        for sub_dir in directories:
+            print(sub_dir)
+            open_file(sub_dir)
+            # processOutputPropID(sub_dir, "vtu", args.specimen_center, args.platen_cells_prop_id,
+            #                     args.platen_points_prop_id, args.output_file_name)
+    # except:
+    #     parser.print_help()
+    #     sys.exit(2)
+    # try:
+    # Loop over directory(ies)
+    # if directories is not None and directories:
+    #     for sub_dir in directories:
+    #         print(sub_dir)
+    #         open_file(sub_dir)
+    # open_file(args.file)
+    # except (TypeError, FileNotFoundError):
+    #     print(args.file)
+    #     print(red_text('Incorrect file name/type'))
+    #     exit(3)
 
 if __name__ == "__main__":
     try:
-        sys.settrace(main(sys.argv[1:]))
+        import multiprocessing
+
+        q = sys.argv[1:]
+        p = multiprocessing.Process(target=main, args=(q,))
+        #
+        p.start()
+        p.join()
+        # sys.settrace(main(sys.argv[1:]))
         print("\nTotal Execution time: \033[1m%s\033[0m\n" % calc_timer_values(time.time() - abs_start))
     except KeyboardInterrupt:
         exit("TERMINATED BY USER")
