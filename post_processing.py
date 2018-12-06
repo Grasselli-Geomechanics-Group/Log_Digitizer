@@ -1002,17 +1002,17 @@ FACIES CODE
 def facies_code(env_name, litho_color):
     if env_name == 'LS':
         f_code = str(1)
-    elif env_name == 'O':
+    elif env_name == 'OT':
         f_code = str(2)
     elif env_name == 'OTP':
-        f_code = str(3)
-    elif env_name in ('OTP/T', 'OTP / T', 'T/OTP', 'T / OTP'):
         f_code = str(3) + 'A'
-    elif env_name == 'OTD':
-        f_code = str(4)
     elif env_name in ('OTP/T', 'OTP / T', 'T/OTP', 'T / OTP'):
+        f_code = str(3) + 'B'
+    elif env_name == 'OTD':
         f_code = str(4) + 'A'
-    elif env_name == 'O' and litho_color in ('Bituminous F-C Siltstone'):
+    elif env_name in ('OTD/T', 'OTD / T', 'T/OTD', 'T / OTD'):
+        f_code = str(4) + 'B'
+    elif env_name == 'O' and litho_color in ('Bituminous F-C Siltstone', 'Bituminous F-M Siltstone'):
         f_code = str(5) + 'A'
     elif env_name == 'O' and litho_color in ('Phosphatic - Bituminous Sandy Siltstone to Breccia'):
         f_code = str(5) + 'B'
@@ -1202,7 +1202,7 @@ MAIN MODULE
 def main(argv):
     # Parse arguments from user
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', type=str, required=False, default='/home/aly/Desktop/Progress_Energy/post_processed/c-7-J_94-B-8_(4)_(revised)/c-7-J_94-B-8_(4)_(revised).pdf',
+    parser.add_argument('-f', '--file', type=str, required=False, default='/home/aly/Desktop/Progress_Energy/post_processed/c-7-J_94-B-8_(1)_(revised)/c-7-J_94-B-8_(1)_(revised).pdf',
                         help="Path to PDF file for processing")
     parser.add_argument('-b', '--batch', action="store_true",
                         help="Batch process of output files in the subdirectories of the given directory")

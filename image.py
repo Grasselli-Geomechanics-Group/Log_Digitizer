@@ -51,7 +51,8 @@ locations = {'Name:': [475, 56], 'Well Location:': [100, 42], 'Fm/Strat. Unit:':
 
 # Abbreviation of the Dep. Env. / Sedimentary Facies
 # Will display an error if the text recognised in the Env. column is not in this list.
-env_list = ['H', 'O', 'OTD', 'OTP', 'T. Lag', 'Ramp', 'Distal Ramp', 'T', 'Temp', 'OT', 'LS', 'Turb', 'Temps', 'Seismite', 'Fluidized Flow', 'Hemipelagite', 'Tempestites', 'Tempestite']
+# env_list = ['H', 'O', 'OTD', 'OTP', 'T. Lag', 'Ramp', 'Distal Ramp', 'T', 'Temp', 'OT', 'LS', 'Turb', 'Temps', 'Seismite', 'Fluidized Flow', 'Hemipelagite', 'Tempestites', 'Tempestite']
+env_list = ['Claraia', 'Parallel', 'Planolites?']
 
 # Resolutions
 h_resol = 600
@@ -265,7 +266,7 @@ def parse_obj(lt_objs):
     texts, dys = {}, []
     for obj in lt_objs:
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
-            if int(obj.bbox[0]) in range(520, 535) and int(obj.bbox[1]) < y_loc:
+            if int(obj.bbox[0]) in range(100, 535) and int(obj.bbox[1]) < y_loc:
                 # text, location = "%.3f, %s" % (m * obj.bbox[1] + c, obj.get_text().replace('\n', '_'))
                 # print("%.3f, %s" % (m * obj.bbox[1] + c, obj.get_text().replace('\n', '_')))
                 # print(m * obj.bbox[1] + c, m * obj.bbox[3] + c)
@@ -1000,36 +1001,52 @@ FACIES CODE
 '''
 
 def facies_code(env_name, litho_color):
-    if env_name == 'LS':
+    # if env_name == 'LS':
+    #     f_code = str(1)
+    # elif env_name == 'O':
+    #     f_code = str(2)
+    # elif env_name == 'OTP':
+    #     f_code = str(3)
+    # elif env_name in ('OTP/T', 'OTP / T', 'T/OTP', 'T / OTP'):
+    #     f_code = str(3) + 'A'
+    # elif env_name == 'OTD':
+    #     f_code = str(4)
+    # elif env_name in ('OTP/T', 'OTP / T', 'T/OTP', 'T / OTP'):
+    #     f_code = str(4) + 'A'
+    # elif env_name == 'O' and litho_color in ('Bituminous F-C Siltstone'):
+    #     f_code = str(5) + 'A'
+    # elif env_name == 'O' and litho_color in ('Phosphatic - Bituminous Sandy Siltstone to Breccia'):
+    #     f_code = str(5) + 'B'
+    # elif env_name in ('H', 'Hemipelagite'):
+    #     f_code = str(6)
+    # elif env_name in ('Tempestites', 'Tempestite', 'T') and litho_color in ('Sandy F-C Siltstone to Silty VF Sandstone'):
+    #     f_code = str(7) + 'A'
+    # elif env_name in ('Tempestites', 'Tempestite', 'T') and litho_color in ('Laminated Bedded Resedimented Bioclasts'):
+    #     f_code = str(7) + 'B'
+    # elif env_name == 'Seismite':
+    #     f_code = str(8)
+    # elif env_name == 'T. Lag' and litho_color in ("Phosphatic - Bituminous Sandy Siltstone to Breccia"):
+    #     f_code = str(9) + 'A'
+    # elif env_name == 'T. Lag' and litho_color in ('Laminated Bedded Resedimented Bioclasts'):
+    #     f_code = str(9) + 'B'
+    # elif env_name == 'Turb':
+    #     f_code = str(10)
+    # else:
+    #     f_code = "UNKNOWN"
+    if litho_color == ('Sandy F-C Siltstone to Silty VF Sandstone'):
         f_code = str(1)
-    elif env_name == 'O':
+    elif litho_color == ('Bituminous F-C Siltstone'):
         f_code = str(2)
-    elif env_name == 'OTP':
+    elif litho_color == ('Bituminous F-M Siltstone'):
         f_code = str(3)
-    elif env_name in ('OTP/T', 'OTP / T', 'T/OTP', 'T / OTP'):
-        f_code = str(3) + 'A'
-    elif env_name == 'OTD':
+    elif litho_color == ('Calcareous - Calcispheric Dolosiltstone'):
         f_code = str(4)
-    elif env_name in ('OTP/T', 'OTP / T', 'T/OTP', 'T / OTP'):
-        f_code = str(4) + 'A'
-    elif env_name == 'O' and litho_color in ('Bituminous F-C Siltstone'):
+    elif litho_color == ('Laminated Bedded Resedimented Bioclasts'):
         f_code = str(5) + 'A'
-    elif env_name == 'O' and litho_color in ('Phosphatic - Bituminous Sandy Siltstone to Breccia'):
+    elif litho_color == ('Laminated Bedded Resedimented Bioclasts') and env_name == "Claraia":
         f_code = str(5) + 'B'
-    elif env_name in ('H', 'Hemipelagite'):
+    elif litho_color == ('Phosphatic - Bituminous Sandy Siltstone to Breccia'):
         f_code = str(6)
-    elif env_name in ('Tempestites', 'Tempestite', 'T') and litho_color in ('Sandy F-C Siltstone to Silty VF Sandstone'):
-        f_code = str(7) + 'A'
-    elif env_name in ('Tempestites', 'Tempestite', 'T') and litho_color in ('Laminated Bedded Resedimented Bioclasts'):
-        f_code = str(7) + 'B'
-    elif env_name == 'Seismite':
-        f_code = str(8)
-    elif env_name == 'T. Lag' and litho_color in ("Phosphatic - Bituminous Sandy Siltstone to Breccia"):
-        f_code = str(9) + 'A'
-    elif env_name == 'T. Lag' and litho_color in ('Laminated Bedded Resedimented Bioclasts'):
-        f_code = str(9) + 'B'
-    elif env_name == 'Turb':
-        f_code = str(10)
     else:
         f_code = "UNKNOWN"
     return f_code
@@ -1137,7 +1154,7 @@ def write_to_csv(h_lines, env, color, bl_unique_loc):
     LAS_output = os.path.join(os.path.dirname(pdf_name), os.path.splitext(os.path.basename(pdf_name))[0] + '_LAS_output.csv')
     with open(LAS_output, 'w') as writecsv:
         writer = csv.writer(writecsv, lineterminator='\n')
-        writer.writerow(["Depth (m)", "Facies Code", "Depositional Environment", "Lithology", "No. Biogenic", "Percentages"])
+        writer.writerow(["Depth (m)", "Facies Code",  "Lithology", "No. Biogenic", "Percentages"])
         for k, v in h_lines.items():
             for i in np.arange(v[0], v[1], LAS_Interval):
                 color_at_def_depth = color.get(i) or color[min(color.keys(), key=lambda z: abs(z - i))]
@@ -1146,8 +1163,8 @@ def write_to_csv(h_lines, env, color, bl_unique_loc):
                 else:
                     litho = color_at_def_depth
                 f_code = facies_code(v[2], litho)
-                # print('%.1f \t%s \t%s \t%s \t%s' % (round(i, 1), v[2], litho, v[4], v[3]))  # Print to terminal window
-                writer.writerow(["{0:.1f}".format(i), f_code, v[2], litho, v[4]] + v[3])
+                print('%.1f \t%s \t%s \t%s \t%s' % (round(i, 1), f_code, litho, v[4], v[3]))  # Print to terminal window
+                writer.writerow(["{0:.1f}".format(i), f_code, litho, v[4]] + v[3])
     writecsv.close()
     print(green_text("LAS output file written"))
 
@@ -1156,6 +1173,7 @@ def write_to_csv(h_lines, env, color, bl_unique_loc):
     print(green_text("\nFINAL OUTPUT\nMODIFIED LAS FORMAT\n"))
     LAS1_output = os.path.join(os.path.dirname(pdf_name),
                                os.path.splitext(os.path.basename(pdf_name))[0] + '_modified_LAS_output.csv')
+    print(LAS1_output)
     with open(LAS_output, 'r+') as readcsv:
         reader = csv.reader(readcsv)
         pre_line = next(reader)
@@ -1221,7 +1239,7 @@ MAIN MODULE
 def main(argv):
     # Parse arguments from user
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', type=str, required=False,
+    parser.add_argument('-f', '--file', type=str, required=False, default="/home/aly/Desktop/log1/c-7-J_94-B-8_(1)_(revised)/c-7-J_94-B-8_(1)_(revised).pdf",
                         help="Path to PDF file for processing")
     parser.add_argument('-b', '--batch', action="store_true",
                         help="Batch process of output files in the subdirectories of the given directory")
