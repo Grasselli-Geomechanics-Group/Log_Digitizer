@@ -51,4 +51,4 @@ def create_sub_directories(root_dir):
                         shutil.copy(os.path.join("templates", i), template_folder)
 
 
-create_sub_directories('/home/aly/Desktop/Progress_log_pdfs')
+create_sub_directories('/home/aly/Desktop/Progress_Energy/20181210_logs')
