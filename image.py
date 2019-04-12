@@ -4,11 +4,23 @@
 # Python Script initially created on 12/05/2018
 # Compiled by Aly @ Grasselli's Geomechanics Group, UofT, 2018
 # Created using PyCharm // Tested on Spyder
-# Current Version 07 - Dated December 28, 2018
+# Current Version 08 - Dated April 10, 2019
 # /////////////////////////////////////////////////////////////// #
 
 # This script only works on Python3
 # Due to the PDFMiner Module
+
+import pdf_file_info  # Load the PDF File info
+import folder_structure  # Create a proper folder structure if the PDFs are all in one folder
+# print(debug_mode)
+
+
+def debugging_mode(state):
+    global debug_mode
+    if state == 1:
+       debug_mode = "yes"
+    else:
+        debug_mode = ""
 
 # Check the Python Version
 import sys
@@ -61,19 +73,52 @@ locations = {'Name:': [475, 56], 'Well Location:': [100, 42], 'Fm/Strat. Unit:':
 # Abbreviation of the Dep. Env. / Sedimentary Facies
 # Will display an error if the text recognised in the Env. column is not in this list.
 # env_list = ['H', 'O', 'OTD', 'OTP', 'T. Lag', 'Ramp', 'Distal Ramp', 'T', 'Temp', 'OT', 'LS', 'Turb', 'Temps', 'Seismite', 'Fluidized Flow', 'Hemipelagite', 'Tempestites', 'Tempestite']
-# In Version 07, the above is omitted and the search os carried out of the keyword (Claraia).
-env_list = ['Claraia']
+# In Version 07, the above is omitted and the search is carried out of the keyword (Claraia).
+# env_list = ['Claraia']
 
 # Resolutions
 h_resol = 600
 resol = 300
 
-# DICTIONARY
-litho_legend = {"skyblue": "Laminated Bedded Resedimented Bioclasts", "sandybrown": "Bituminous F-C Siltstone", "tan": "Bituminous F-M Siltstone", "khaki": "Sandy F-C Siltstone to Silty VF Sandstone", "darkseagreen": "Phosphatic - Bituminous Sandy Siltstone to Breccia", "plum": "Calcareous - Calcispheric Dolosiltstone", "darkkhaki": "Bituminous F-M Siltstone", "goldenrod": "Bituminous F-C Siltstone", "white": "Blank Space", "black": "Hz Line"}
+'''
+LOAD CSV FILES
+
+- Loads CSV Files to obtain & build list/dictionaries the following mandatory information:
+    - keywords
+    - Color and Facies
+    - RGB Spectrum
+NOT Case sensitive
+NO Spaces around commas in CSV
+'''
+
+defined_color_map = []
+env_list= []
+keywords = "keywords.csv"
+litho_csv = "litho_legend.csv"
+color_csv = 'defined_color_map.csv'
+
+with open(litho_csv, mode='r') as infile:
+    reader = csv.reader(infile)
+    litho_legend = {rows[0]:rows[1] for rows in reader}
+infile.close()
+
+with open(color_csv, mode='r') as infile:
+    reader = csv.DictReader(infile)
+    for row in reader:
+        defined_color_map.append((int(row["R"]), int(row["G"]), int(row["B"])))
+infile.close()
+
+with open(keywords, mode='r') as infile:
+    reader = csv.reader(infile)
+    for line in reader:
+        env_list.extend(line)
+infile.close()
+
+# litho_legend = {"skyblue": "Laminated Bedded Resedimented Bioclasts", "sandybrown": "Bituminous F-C Siltstone", "tan": "Bituminous F-M Siltstone", "khaki": "Sandy F-C Siltstone to Silty VF Sandstone", "darkseagreen": "Phosphatic - Bituminous Sandy Siltstone to Breccia", "plum": "Calcareous - Calcispheric Dolosiltstone", "darkkhaki": "Bituminous F-M Siltstone", "goldenrod": "Bituminous F-C Siltstone", "white": "Blank Space", "black": "Hz Line", "rosybrown": "Bituminous F-M Siltstone", "darkslategray": "Hz Line", "mediumvioletred": "Calcareous - Calcispheric Dolosiltstone", "cornflowerblue": "Laminated Bedded Resedimented Bioclasts", }
 # excluded_colors = [(255, 255, 255), (36, 31, 33), (94, 91, 92), (138, 136, 137), (197, 195, 196), (187, 233, 250), (26, 69, 87)]  # exclusion colors from mapping [(White), (Black), (Dim Grey), (Grey), (Silver), (paleturquoise), (darkslategray)]
 # defined_color_map = [(201, 163, 127), (250, 166, 76), (122, 176, 222), (255, 245, 135), (199, 161, 201), (156, 212, 173), (255, 255, 255), (36, 31, 33), (35, 31, 32)]
-# Defined colors [(tan), (sandybrown), (skyblue), (khaki), (plum), (darksgreen)]
-defined_color_map = [(210, 180, 140), (244, 164, 96), (135, 206, 235), (240, 230, 140), (143, 188, 143), (221, 160, 221), (218, 165, 32), (189, 183, 107), (255, 255, 255), (0, 0, 0)]
+# Defined colors [(tan), (sandybrown), (skyblue), (khaki), (plum), (darksgreen), (white), (black), (rosybrown)]
+# defined_color_map = [(210, 180, 140), (244, 164, 96), (135, 206, 235), (240, 230, 140), (143, 188, 143), (221, 160, 221), (218, 165, 32), (189, 183, 107), (255, 255, 255), (0, 0, 0), (181, 150, 117), (55, 52, 53), (165, 71, 134), (112, 156, 207)  ]
 
 if len(litho_legend) != len(defined_color_map):
     exit("The defined Color Map must match the Color Code Name.\nCheck Dictionaries in the script.")
@@ -82,12 +127,17 @@ if len(litho_legend) != len(defined_color_map):
 '''
 GLOBAL OPENING OF FILE
 
+- Loads files information and checks for fonts. No fonts available will skip the file. 
 - Insert File name to open
 - Load file
 '''
 
 
 def open_file(f_name, px_location):
+    val = pdf_file_info.main(f_name)
+    if val == 'yes':
+        print(red_text("Skipping File"))
+        return
     global pdf_name, fp, px_loc
     pdf_name = f_name
     px_loc = px_location
@@ -124,7 +174,7 @@ def red_text(val):  # RED Bold text
 
 
 def green_text(val):  # GREEN Bold text
-    tex = "\033[1;92m%s\033[0m" % val
+    tex = "\033[1;32m%s\033[0m" % val
     return tex
 
 
@@ -218,7 +268,11 @@ def parse_obj(lt_objs):
     print(green_text("PDF OCR COMPLETED. \n"))
 
     # Run the module to obtain any possible information of the log.
-    log_info(coord, corel)
+    try:
+        log_info(coord, corel)
+    except ValueError:
+        print("Skipping File Info")
+        return
 
     '''
     PROCESS // PARSE DEPTH COLUMN
@@ -382,11 +436,15 @@ def parse_obj(lt_objs):
     env_matches = OrderedDict(sorted(env_matches.items()))
     # DISPLAY the entire environment matches {DEPTH : VALUE}
     print(green_text("\nProcessed Environments (Key Word) - OCR Mode\n"))
-    print('Depth (m) : Environment (Key Word)')
-    for key in env_matches:
-        print("%.3f : %s" % (key, bold_text(env_matches[key])))
+    if len(env_matches) > 0:
+        print('Depth (m) : Environment (Key Word)')
+        for key in env_matches:
+            print("%.3f : %s" % (key, bold_text(env_matches[key])))
+    else:
+        print(red_text("No Keyword Found in log"))
 
     # exit(20)
+
 
 '''
 LOG INFO
@@ -397,12 +455,14 @@ LOG INFO
 
 # Possible Improvement
 # 1) Make the match not on X/Y but on the next X in the line (Same Y Value).
-# 2) Does not work efficiently if there is a  manual enter by the user in the log.
+# 2) Does not work efficiently if there is a manual enter by the user in the log.
 
 
 def log_info(coord, corel):
     coord_myarray = np.asarray(coord)  # convert nested list to numpy array
+    # print(coord, coord_myarray)
     for k, v in locations.items():  # Load locations of identified text
+        # print(tot_len - v[1] , tot_len , v[1] )
         v[1] = tot_len - v[1]  # Get the depth from the top.
         alpha = coord_myarray[spatial.KDTree(coord_myarray).query(v)[1]]  # Lookup nearest point to predefined location
         for k1, v1 in corel.items():  # Load the correlation dictionary
@@ -429,19 +489,24 @@ DEPTH COLUMN - VALIDATION
 
 
 def check_depth_column(name, list_values):
-    if name == 'Depth Values':
-        for x, i in enumerate(list_values):
-            if x < len(list_values) - 1:
-                    if list_values[x] < list_values[x + 1]:
-                        print("Check the depth values for Typos")
+    # print (list_values)
+    try:
+        if name == 'Depth Values':
+            for x, i in enumerate(list_values):
+                if x < len(list_values) - 1:
+                        if list_values[x] < list_values[x + 1]:
+                            print("Check the depth values for Typos")
 
-    if len(set(np.diff(list_values))) == 1 or abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values)))) < 2:
-        print(green_text("\n%s in the Depth Column checked" % name))
-    # elif abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values)))) < 2:
-    #     print("MINOR Error in scale of %s, off by %s units" % (name, diff))
-    else:
-        print(red_text("Status 12 - Possible error in scale of %s.\nValues are %s" % (name, np.diff(list_values))))
-    return np.diff(list_values)
+        if len(set(np.diff(list_values))) == 1 or abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values)))) < 2:
+            print(green_text("\n%s in the Depth Column checked" % name))
+        # elif abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values)))) < 2:
+        #     print("MINOR Error in scale of %s, off by %s units" % (name, diff))
+        else:
+            print(red_text("Status 12 - Possible error in scale of %s.\nValues are %s" % (name, np.diff(list_values))))
+        return np.diff(list_values)
+    except ValueError:
+        print(red_text("Depth text identified as Paths."))
+        return
 
 
 '''
@@ -450,6 +515,7 @@ INITIALIZING MAIN MODULE FOR EXECUTION
 - SCRIPT OBTAINED FROM https://stackoverflow.com/questions/22898145/how-to-extract-text-and-text-coordinates-from-a-pdf-file
 - Open PDF and obtain file extents. Mainly "y_top" that will be used for further processing.
 - Size of MEDIABOX returned in points (Pt.).
+- If PDF has more than one page. Will process each separately and add suffix XXX.
 '''
 
 
@@ -485,6 +551,7 @@ def initial_processing():
 
     # Total number of pages in PDF.
     tot_pages = (resolve1(document.catalog['Pages'])['Count'])
+    global page_count
     page_count = 1
 
     # loop over all pages in the document
@@ -492,6 +559,12 @@ def initial_processing():
 
         # read the media box that is the page size as list of 4 integers x0 y0 x1 y1
         print("PAGE %s DIMENSIONS is %s points." % (page_count, page.mediabox))
+        print("PDF PAGE %s / %s LOADED." % (bold_text(page_count), bold_text(tot_pages)))
+        global p_id
+        if tot_pages > 1:
+            p_id = (str("_page_%02d" % page_count))
+        else:
+            p_id = ""
         _, _, _, tot_len = page.mediabox
 
         # read the page into a layout object
@@ -506,7 +579,7 @@ def initial_processing():
         layout = device.get_result()
 
         # load module to parse every object encountered in the PDF
-        print("PDF PAGE %s / %s LOADED." % (bold_text(page_count), bold_text(tot_pages)))
+
         parse_obj(layout._objs)
 
         # Convert PDF to process lithology column and obtain Pt./Pixel Ratio
@@ -538,7 +611,8 @@ def load_templates(template_folder):
 '''
 CROP PDF
 
-- Load entire PDF
+- Load the PDF being processed.
+- If a multipage PDF, load the page being processed. 
 - Crop off PDF and return new MediaBOX bound PDF.
 - Convert the cropped MediaBOX to allow higher resolution PNG.
 '''
@@ -548,27 +622,27 @@ def cropping_pdf():
     with open(pdf_name, "rb") as in_f:
         log_input = PdfFileReader(in_f)
         x1, y1, x2, y2 = log_input.getPage(0).mediaBox
-        numpages = log_input.getNumPages()
+        # numpages = log_input.getNumPages()
         sed_struc_log_output = PdfFileWriter()
 
         # Crop off the sed_biogenic column
-        for i in range(numpages):
-            sed_struc_log = log_input.getPage(i)
-            sed_struc_log.mediaBox.lowerLeft = (240, y2)
-            sed_struc_log.mediaBox.upperRight = (215, y1)
-            sed_struc_log_output.addPage(sed_struc_log)
+        # for i in range(numpages):
+        sed_struc_log = log_input.getPage(page_count - 1)
+        sed_struc_log.mediaBox.lowerLeft = (240, y2)
+        sed_struc_log.mediaBox.upperRight = (215, y1)
+        sed_struc_log_output.addPage(sed_struc_log)
 
         # Write cropped area as a new PDF
-        with open((os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log.pdf")), "wb") as out_f:
+        with open((os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log" + p_id + ".pdf")), "wb") as out_f:
             sed_struc_log_output.write(out_f)
         out_f.close()
 
         # Open PDF and convert to PNG (h_resol) for image processing.
-        out_f = (os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log.pdf"))
+        out_f = (os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log" + p_id + ".pdf"))
         convert(out_f, h_resol)
 
         # Load image, template folder and execute matching module using biogenic parameters and threshold
-        cropped_pdf_image = (os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log_python_convert.png"))
+        cropped_pdf_image = (os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log" + p_id + p_id + "_python_convert.png"))
         template_folder = os.path.join((os.path.dirname(os.path.splitext(pdf_name)[0])), "templates")
         # template_folder = os.path.join((os.path.dirname(os.path.splitext(pdf_name)[0])), "templates")
         matching(cropped_pdf_image, template_folder, 0.70)  # match => pdf_image, folder holding template, matching threshold
@@ -581,20 +655,18 @@ MATCH IMAGE & DISPLAY RESULT
 - Templates are resized from 90 - 110% of their size to look for more matches.
 - During matching the ratio is tracked.
 - Match proximity based on half the smallest diagonal of the all template image.
+
+:param threshold: VERY CRITICAL. Defaulted as 70%.
 '''
 
 
 def matching(match_fil_name, folder, threshold):
-    '''
-    :param threshold: VERY CRITICAL. Defaulted as 70%.
-    '''
-
     matched, temp_locations = {}, []
     templates_folder = load_templates(folder)  # Load Templates from Folder
     print(green_text("\nProcessing %s - PNG Mode\nFound %s templates in folder" % (os.path.basename(folder).upper(), len(templates_folder))))
     img_bgr = cv2.imread(os.path.abspath(match_fil_name))  # Read Image as RGB
     img_gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)  # Convert Image to grayscale
-    cv2.imwrite(os.path.join(os.path.dirname(match_fil_name), 'gray_image.png'), img_gray)  # Write binary Image
+    cv2.imwrite(os.path.join(os.path.dirname(match_fil_name), 'gray_image' + p_id + '.png'), img_gray)  # Write binary Image
     _, temp_w, temp_h = img_bgr.shape[::-1]  # Tuple of number of rows, columns and channels
     print("\nImage Loaded - Dimensions %s px X %s px @ %s dpi.\nPixel to Point ratio is: %.2f" % (temp_w, temp_h, h_resol, ratio_px_pt))
 
@@ -640,7 +712,7 @@ def matching(match_fil_name, folder, threshold):
     print("Found %s matches." % bold_text(len(unique)))
 
     # Write image showing the location of the detected matches.
-    output_file_name = str(os.path.basename(folder) + '_detected.png')
+    output_file_name = str(os.path.basename(folder) + p_id + '_detected.png')
     cv2.imwrite(os.path.join(os.path.dirname(match_fil_name), output_file_name), img_bgr)
     print(bold_text("Detected image saved.\n"))
 
@@ -678,7 +750,8 @@ def recursiveCoord(_coordinateList, threshold):
 FIND / RENAME MODULE
 
 - Inverted images are converted using pdftoppm utility to convert PDF to PIL Image object.
-- Utility does not allow for file name handling, name found by extension (*-1.png) and then name changed.
+- Utility does not allow for file name handling, name found by extension (*-X.png) and then name changed.
+- X is the page number to accommodate PDFs with more than one page. 
 '''
 
 
@@ -693,8 +766,10 @@ def find(pattern, path):
 
 def rename(new_f_name):
     time.sleep(5)
-    names = find('*-1.png', os.path.dirname(new_f_name))
-    fil_name = os.path.splitext(new_f_name)[0] + '_python_convert.png'
+    page_convert_number = str('*-' + str(page_count) + '.png')
+    print(page_convert_number)
+    names = find(page_convert_number, os.path.dirname(new_f_name))
+    fil_name = os.path.splitext(new_f_name)[0] + p_id + '_python_convert.png'
     for i in names:
         os.rename(i, os.path.join(os.path.dirname(new_f_name), fil_name))
     return names
@@ -703,7 +778,8 @@ def rename(new_f_name):
 '''
 CONVERT PDF TO PNG
 
-- Loads PDF log and returns PNG at specified pixel
+- Load page X of the PDF log and returns PNG at specified pixel
+- X is the page number to accommodate PDFs with more than one page. 
 - Looks up corner pixel to identify if image is the Negative.
 '''
 
@@ -715,33 +791,37 @@ def convert(f_name, conv_resol):
     import wand.exceptions
     from pdf2image import convert_from_path, convert_from_bytes
 
+    if len(p_id) == 0:
+        convert_p = 1
+    else:
+        convert_p = page_count
+
     try:
         with Image(filename=f_name, resolution=conv_resol) as img:
             with Image(width=img.width, height=img.height, background=Color("white")) as bg:
                 bg.composite(img, 0, 0)
                 # bg.alpha_channel = False
-                bg.save(filename=os.path.splitext(f_name)[0] + '_python_convert.png')
-        fil_name = os.path.splitext(f_name)[0] + '_python_convert.png'
+                bg.save(filename=os.path.splitext(f_name)[0] + p_id + '_python_convert.png')
+        fil_name = os.path.splitext(f_name)[0] + p_id + '_python_convert.png'
     except wand.exceptions.CorruptImageError or TypeError:
         print(red_text("INVERTED IMAGE - PDF File maybe corrupted"))
-        convert_from_path(f_name, dpi=conv_resol, output_folder=os.path.join(os.path.dirname(f_name)), first_page=1,
-                          last_page=None, fmt='png')
+        convert_from_path(f_name, dpi=conv_resol, output_folder=os.path.join(os.path.dirname(f_name)), first_page=convert_p,
+                          last_page=convert_p, fmt='png')
         rename(f_name)
-        fil_name = os.path.splitext(f_name)[0] + '_python_convert.png'
+        fil_name = os.path.splitext(f_name)[0] + p_id + '_python_convert.png'
 
     if platform.system() == "Linux":
         im = PIL.Image.open(fil_name)
         rgb_im_neg = im.convert('RGB')
         if get_colour_name(rgb_im_neg.getpixel((5,5)))[1] == 'black':
             print(red_text('Negative Image\nConverting Image'))
-            convert_from_path(f_name, dpi=conv_resol, output_folder=os.path.join(os.path.dirname(f_name)), first_page=1,
-                              last_page=None, fmt='png')
+            convert_from_path(f_name, dpi=conv_resol, output_folder=os.path.join(os.path.dirname(f_name)), first_page=convert_p,
+                              last_page=convert_p, fmt='png')
             rename(f_name)
         im.close()
-        fil_name = os.path.splitext(f_name)[0] + '_python_convert.png'
+        fil_name = os.path.splitext(f_name)[0] + p_id + '_python_convert.png'
 
-    # print(fil_name)
-    look_for = 'black'
+    look_for = ['black', 'darkslategray']
 
 
 '''
@@ -792,10 +872,11 @@ def bed(approx_x, neg, pos, location_to_check):
         bedding_surface = []
         for k in range(approx_x - neg, approx_x + pos):
             bedding_surface.append(rgb_im.getpixel((k, i)))
-        # print("%0.3f : %s" % ((m * (height - i) / ratio_px_pt) + c, Counter(bedding_surface).most_common(2)))
-        if get_colour_name(Counter(bedding_surface).most_common(1)[0][0])[1] == look_for:
+        if debug_mode == 'yes':
+            print("%0.3f : %s" % ((m * (height - i) / ratio_px_pt) + c, Counter(bedding_surface).most_common(2)))
+        if get_colour_name(Counter(bedding_surface).most_common(1)[0][0])[1] in look_for:
             contact_type.append((m * (height - i) / ratio_px_pt) + c)
-        elif get_colour_name(Counter(bedding_surface).most_common(2)[0][0])[1] == 'white' and get_colour_name(Counter(bedding_surface).most_common(2)[1][0])[1] == look_for and Counter(bedding_surface).most_common(2)[1][1] / Counter(bedding_surface).most_common(2)[0][1] > 0.50:
+        elif get_colour_name(Counter(bedding_surface).most_common(2)[0][0])[1] == 'white' and get_colour_name(Counter(bedding_surface).most_common(2)[1][0])[1] in look_for and Counter(bedding_surface).most_common(2)[1][1] / Counter(bedding_surface).most_common(2)[0][1] > 0.50:
             # print("WHITE / BLACK")
             contact_type.append((m * (height - i) / ratio_px_pt) + c)
 
@@ -869,7 +950,10 @@ def processing(the_defined_color_map, px_loc):
 
     # Obtain All Colors (1 Color/pixel) in the Lithological Identification
     for j in range(0, height, 1):
-        # print (j, rgb_im.getpixel((approx_predef_x, j)), get_colour_name(rgb_im.getpixel((approx_predef_x, j)))[1])  # Print Location // RGB // Color Name of the PIXEL ID Identified.
+        if debug_mode == 'yes':  # Print Location // RGB // Color Name of the PIXEL ID Identified.
+            if j == 0:
+                print(green_text("\nRAW COLORS\nPrint Location // RGB // Color Name of the PIXEL ID Identified."))
+            print (j, rgb_im.getpixel((approx_predef_x, j)), get_colour_name(rgb_im.getpixel((approx_predef_x, j)))[1])
         color_map.append(rgb_im.getpixel((approx_predef_x, j)))
 
     print("No. of existing colors in Pixel ID %s column is: %s" % (bold_text(approx_predef_x), bold_text(len(set(color_map)))))
@@ -908,13 +992,24 @@ def processing_HZ_lines():
         location_to_check = []
         black_lines = []
         for j in range(0, height):
-            # print(j, rgb_im.getpixel((k, j)), get_colour_name(rgb_im.getpixel((k, j)))[1])  # Print Location // RGB // Color Name of the PIXEL ID Identified.
-            if get_colour_name(rgb_im.getpixel((k, j)))[1] == look_for:
-                # print("BLACK LINES", j) #Display locations of Black Lines
+            if debug_mode == 'yes':  # Print Location // RGB // Color Name of the PIXEL ID Identified.
+                if j == 0:
+                    print(green_text("\n\nPixel ID // RGB // Color Name of the PIXEL ID Identified."))
+                print(j, rgb_im.getpixel((k, j)), get_colour_name(rgb_im.getpixel((k, j)))[1])
+            if get_colour_name(rgb_im.getpixel((k, j)))[1] in look_for:
+                if debug_mode == 'yes':
+                    print("Black line Location", j)  #Display locations of Black Lines
                 black_lines.append(int(j))
 
+        # if debug_mode == 'yes':
+        #     print (black_lines)
+        # time.sleep(10)
         # Check if the locations are after one another and group them
         possible_black_lines = list(group_runs(black_lines))
+        if debug_mode == 'yes':
+            print(green_text("\nPossible Hz Black Lines"))
+            for i in possible_black_lines:
+                print(i)
 
         # After grouping, check the center point of the line.
         for i in (possible_black_lines):
@@ -1011,7 +1106,7 @@ def log_cleanup(cleanup_color_map, unique_color_map):
     # for x,i in enumerate(cleanup_color_map):
     #     print(x, get_colour_name(i)[1])
 
-    # ## MOVE TO NEXT MODULE - REMOVE LINES
+    ## MOVE TO NEXT MODULE - REMOVE LINES
     remove_black_lines(cleanup_color_map)
 
 
@@ -1028,11 +1123,10 @@ def remove_black_lines(color_map):
     black_lines, location_to_check = [], []
 
     for j in range(0, height):
-        if get_colour_name(color_map[j])[1] == look_for:
+        if get_colour_name(color_map[j])[1] in look_for:
             black_lines.append(int(j))
 
     possible_black_lines = list(group_runs(black_lines))
-
     # After grouping, split line and divide into top and bottom colors.
     for y, i in enumerate(possible_black_lines):
         # print("Line # %s" % y)
@@ -1048,15 +1142,20 @@ def remove_black_lines(color_map):
     global color_dict
     color_dict = {}
     for i, j in enumerate(color_map):
-        # print("%.3f %s %s" %(m * ((len(color_map) - i) / ratio_px_pt) + c, j, get_colour_name(j)[1])) # Print Depth // RGB // Color Name
+        if debug_mode == 'yes':  # Print Depth // RGB // Color Name
+            if i == 0:
+                print(green_text("\nPROCESSED COLORS\nPrint Depth // RGB // Color Name"))
+            print("%.3f // %s // %s" %(m * ((len(color_map) - i) / ratio_px_pt) + c, j, get_colour_name(j)[1]))
         color_dict[m * ((len(color_map) - i) / ratio_px_pt) + c] = get_colour_name(j)[1]
 
     print(green_text("\nProcessed color column"))
 
-    # DISPLAY DEPTH : COLORS
-    # print("Depth (m) : Color")
-    # for k, v in color_dict.items():
-    #     print("%0.3d : %s" % (k, v))
+    # exit("COLOR DISPLAY")
+    if debug_mode == 'yes':
+        # DISPLAY DEPTH : COLORS
+        print(green_text("\nDepth (m) : Color"))
+        for k, v in sorted(color_dict.items()):
+            print("%0.3f : %s" % (k, v))
 
 '''
 FACIES CODE
@@ -1131,7 +1230,8 @@ def facies_code(env_name, litho_color):
         f_code = "UNKNOWN"
 
     # DISPLAY Lithology Name, "Claraia", Facies Code
-    # print(litho_color, env_name, f_code)
+    if debug_mode == 'yes':
+        print(litho_color, env_name, f_code)
 
     return f_code
 
@@ -1237,18 +1337,9 @@ def write_to_csv(h_lines, env, color):
         x = len(cat_temp_val)
         h_lines[k].append(x)
 
-    # try:
-    #     if h_lines:
-    #         print("Continue")
-    # except:
-    #         print("Adjusting Pixel\n")
-    #         print(px_loc)
-    #         new_px_loc = px_loc - 5
-    #         processing(defined_color_map, new_px_loc)
-
     # Output to CSV File as depth interval
     print(green_text("\nFINAL OUTPUT\nLAYER INTERVAL FORMAT\n"))
-    layered_output = os.path.join(os.path.dirname(pdf_name), os.path.splitext(os.path.basename(pdf_name))[0] + '_Layered_output.csv')
+    layered_output = os.path.join(os.path.dirname(pdf_name), os.path.splitext(os.path.basename(pdf_name))[0] + p_id + '_Layered_output.csv')
     with open(layered_output, 'w') as writecsv:
         writer = csv.writer(writecsv, lineterminator='\n')
         writer.writerow(["Depth From (m)", "Depth To (m)", "Depositional Environment", "Lithology (Mid Depth)", "Biogenic", "Percentages"])
@@ -1268,7 +1359,7 @@ def write_to_csv(h_lines, env, color):
     # Output to LAS File
     # print to Terminal window
     print(green_text("\nFINAL OUTPUT\nLAS FORMAT\n"))
-    LAS_output = os.path.join(os.path.dirname(pdf_name), os.path.splitext(os.path.basename(pdf_name))[0] + '_LAS_output.csv')
+    LAS_output = os.path.join(os.path.dirname(pdf_name), os.path.splitext(os.path.basename(pdf_name))[0] + p_id + '_LAS_output.csv')
     with open(LAS_output, 'w') as writecsv:
         writer = csv.writer(writecsv, lineterminator='\n')
         writer.writerow(["Depth (m)", "Facies Code",  "Lithology", "No. Biogenic", "Percentages"])
@@ -1289,7 +1380,7 @@ def write_to_csv(h_lines, env, color):
     # print to Terminal window
     print(green_text("\nFINAL OUTPUT\nMODIFIED LAS FORMAT\n"))
     LAS1_output = os.path.join(os.path.dirname(pdf_name),
-                               os.path.splitext(os.path.basename(pdf_name))[0] + '_modified_LAS_output.csv')
+                               os.path.splitext(os.path.basename(pdf_name))[0] + p_id + '_modified_LAS_output.csv')
     with open(LAS_output, 'r+') as readcsv:
         reader = csv.reader(readcsv)
         pre_line = next(reader)
@@ -1343,44 +1434,60 @@ MAIN MODULE
 - Returns total time and Error on user termination.
 '''
 
-def main(argv):
-    # Parse arguments from user
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', type=str, required=False, default="/home/aly/Desktop/c-7-J_94-B-8_(4)_(revised)/c-7-J_94-B-8_(4)_(revised).pdf",
-                        help="Path to PDF file for processing")
-    parser.add_argument('-p', '--pixel', type=int, required=False,
-                        default=765, help="Pixel ID to verify color")
-    parser.add_argument('-b', '--batch', action="store_true",
-                        help="Batch process of output files in the subdirectories of the given directory")
-    args = parser.parse_args()
-
-    # If '.' is specified, the current directory is used as the directory path
-    if args.file == '.':
-        args.file = os.getcwd()
-
-    # Placeholder for the list of directory(ies). Change relative path to absolute path.
-    directories = [os.path.abspath(args.file)]
-
-    # If batch processing, we'll need to do the analysis on all subdirectories of the given directory
-    if args.batch:
-        print('\nBatch processing...\n')
-
-        directories = findSubdirectories(os.path.abspath(args.file))
-
-    # Loop over directory(ies)
-    if directories is not None and directories:
-        for sub_dir in directories:
-            print(sub_dir)
-            open_file(sub_dir, args.pixel)
-
+# def main(argv):
+#     # Parse arguments from user
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('-f', '--file', type=str, required=False, default="/home/aly/Desktop/Progress_Energy/trial",
+#                         help="Path to PDF file for processing")
+#     parser.add_argument('-p', '--pixel', type=int, required=False,
+#                         default=770, help="Pixel ID to verify color")
+#     parser.add_argument('-b', '--batch', action="store_true",
+#                         help="Batch process of output files in the subdirectories of the given directory")
+#     args = parser.parse_args()
+#
+#     if os.path.exists(os.path.abspath(args.file)) == False:
+#         # print("Wrong Directory")
+#         exit("Path not Found. Check Path")
+#
+#     if answer in ('Y', 'y'):
+#         folder_structure.create_sub_directories(os.path.abspath(args.file))
+#
+#     # If '.' is specified, the current directory is used as the directory path
+#     if args.file == '.':
+#         args.file = os.getcwd()
+#
+#     # Placeholder for the list of directory(ies). Change relative path to absolute path.
+#     directories = [os.path.abspath(args.file)]
+#
+#     # If batch processing, we'll need to do the analysis on all subdirectories of the given directory
+#     if args.batch:
+#         print('\nBatch processing...\n')
+#
+#         directories = findSubdirectories(os.path.abspath(args.file))
+#
+#     # Loop over directory(ies)
+#     if directories is not None and directories:
+#         for sub_dir in directories:
+#             print(sub_dir)
+#             open_file(sub_dir, args.pixel)
 
 if __name__ == "__main__":
     try:
         import multiprocessing
-        q = sys.argv[1:]
-        p = multiprocessing.Process(target=main, args=(q,))
-        p.start()
-        p.join()
+
+
+        # answer = "Y"
+
+        # while True:
+        #     answer = input("Do you want to structure the folder? \033[1m[Y/N]\033[0m ")
+        #     if str(answer) not in ('N', 'n', 'y', 'Y'):
+        #         print("ERROR. Please Type \033[1m\'Y\' or \'N\'\033[0m")
+        #     else:
+        #         break
+        # q = sys.argv[1:]
+        # p = multiprocessing.Process(target=main, args=(q,))
+        # p.start()
+        # p.join()
         print("\nTotal Execution time: \033[1m%s\033[0m\n" % calc_timer_values(time.time() - abs_start))
     except KeyboardInterrupt:
         exit("TERMINATED BY USER")
