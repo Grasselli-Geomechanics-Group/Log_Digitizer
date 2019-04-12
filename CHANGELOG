@@ -1,3 +1,12 @@
+20190412 - Version 08
+Has a user interface.
+Supports PDF with more than one page.
+Will process every page of the PDFs that have more than one page.
+The colors and RGB are managed in external files. Meaning it is a standard text file where you could just go in and add the colors in the text and match them to the corresponding Facies name.
+The scripts read the PDF file info.
+The script will terminate (skip the PDF) if it can not find any fonts.
+The script will keep looping till it is able to identify a Pixel ID where the colors (Lithology & Grain Size) can be identified and processed accordingly.
+
 20180910 - Version 06
 The identification of the scale is now automated.
 The script uses OCR to identify the depth and the depositional environment.
