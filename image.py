@@ -10,25 +10,8 @@
 # This script only works on Python3
 # Due to the PDFMiner Module
 
-import pdf_file_info  # Load the PDF File info
-import folder_structure  # Create a proper folder structure if the PDFs are all in one folder
-# print(debug_mode)
-
-
-def debugging_mode(state):
-    global debug_mode
-    if state == 1:
-       debug_mode = "yes"
-    else:
-        debug_mode = ""
-
-# Check the Python Version
-import sys
-ver = sys.version
-if ver[0] == str(2):
-    exit("\nSCRIPT ONLY WORKS ON PYTHON 3\n")
-
 # Import Modules
+import sys
 import PIL.ImageOps
 import numpy as np
 import pdfminer
@@ -63,6 +46,8 @@ from pdfminer.converter import PDFPageAggregator
 from pdfminer.pdfinterp import resolve1
 from PyPDF2 import PdfFileWriter, PdfFileReader
 
+import pdf_file_info  # Load the PDF File info
+import folder_structure  # Create a proper folder structure if the PDFs are all in one folder
 
 # START OF EXECUTION
 abs_start = time.time()
@@ -91,15 +76,17 @@ NOT Case sensitive
 NO Spaces around commas in CSV
 '''
 
+global failed_logs
+failed_logs = []
 defined_color_map = []
-env_list= []
-keywords = "keywords.csv"
-litho_csv = "litho_legend.csv"
-color_csv = 'defined_color_map.csv'
+env_list = []
+keywords = "./keywords.csv"
+litho_csv = "./litho_legend.csv"
+color_csv = './defined_color_map.csv'
 
 with open(litho_csv, mode='r') as infile:
     reader = csv.reader(infile)
-    litho_legend = {rows[0]:rows[1] for rows in reader}
+    litho_legend = {rows[0]: rows[1] for rows in reader}
 infile.close()
 
 with open(color_csv, mode='r') as infile:
@@ -125,6 +112,29 @@ if len(litho_legend) != len(defined_color_map):
 
 
 '''
+CHECK DEBUG STATUS
+'''
+
+
+def debugging_mode(state):
+    global debug_mode
+    if state == 1:
+        debug_mode = "yes"
+    else:
+        debug_mode = ""
+
+
+'''
+CHECK Python Version
+'''
+
+
+ver = sys.version
+if ver[0] == str(2):
+    exit("\nSCRIPT ONLY WORKS ON PYTHON 3\n")
+
+
+'''
 GLOBAL OPENING OF FILE
 
 - Loads files information and checks for fonts. No fonts available will skip the file. 
@@ -134,6 +144,8 @@ GLOBAL OPENING OF FILE
 
 
 def open_file(f_name, px_location):
+    global indiv_time
+    indiv_time = time.time()
     val = pdf_file_info.main(f_name)
     if val == 'yes':
         print(red_text("Skipping File"))
@@ -242,6 +254,8 @@ PROCESS // PARSE ALL PDF
 
 
 def parse_obj(lt_objs):
+    global failed_log
+    failed_log = ''
     coord, corel, depths = [], {}, {}
     y_loc = tot_len - 190
 
@@ -296,6 +310,14 @@ def parse_obj(lt_objs):
     # Sort by location in the column
     # Separate the OCR depth from the point location
     depths = OrderedDict(sorted(depths.items(), key=lambda t: t[0]))
+    # Check it there is TEXT in the depth column
+    # Else skip to next file.
+    if len(depths) == 0:
+        print(red_text("No text identified in depth column.\nSkipping File.\n"))
+        failed_log = 'yes'
+        failed_logs.append(pdf_name)
+        return failed_log
+
     a, b = [], []
 
     for key in depths:
@@ -313,7 +335,11 @@ def parse_obj(lt_objs):
     # Equation of linear correlation between OCR depth [a] & Pt. location [b]
     # between second and second last to avoid movement of last depth avoiding extension of page
     # Identified and overcomes depths at extents of log (Lily a-9-J).
-    y, x = [a[1], a[-2]], [b[1], b[-2]]
+    if len(a) > 3:
+        y, x = [a[1], a[-2]], [b[1], b[-2]]
+    else:
+        print(red_text("Only 3 values for depth found.\nPlease recheck depth adequately."))
+        y, x = [a[0], a[-1]], [b[0], b[-1]]
     coeff(x, y)
 
     # DISPLAY the entire depth column matches {DEPTH : VALUE}
@@ -322,7 +348,6 @@ def parse_obj(lt_objs):
     for key in depths:
         # DISPLAY the OCR of the text sequence {Pt. : OCR Depth value}
         print("%s Pt. : %s meters" % (key, bold_text(depths[key])))
-
 
     '''
     PROCESS // PARSE ENVIRONMENT COLUMN
@@ -359,7 +384,6 @@ def parse_obj(lt_objs):
     # for k,v in texts.items():
     #     print(k,v)
     dy = (sum(dys) / len(dys))
-
 
     '''
     FOR OLDER VERSION
@@ -494,8 +518,8 @@ def check_depth_column(name, list_values):
         if name == 'Depth Values':
             for x, i in enumerate(list_values):
                 if x < len(list_values) - 1:
-                        if list_values[x] < list_values[x + 1]:
-                            print("Check the depth values for Typos")
+                    if list_values[x] < list_values[x + 1]:
+                        print("Check the depth values for Typos")
 
         if len(set(np.diff(list_values))) == 1 or abs(max(set(np.diff(list_values))) - min(set(np.diff(list_values)))) < 2:
             print(green_text("\n%s in the Depth Column checked" % name))
@@ -506,7 +530,6 @@ def check_depth_column(name, list_values):
         return np.diff(list_values)
     except ValueError:
         print(red_text("Depth text identified as Paths."))
-        return
 
 
 '''
@@ -581,6 +604,8 @@ def initial_processing():
         # load module to parse every object encountered in the PDF
 
         parse_obj(layout._objs)
+        if failed_log == 'yes':
+            return
 
         # Convert PDF to process lithology column and obtain Pt./Pixel Ratio
         processing(defined_color_map, px_loc)
@@ -619,6 +644,12 @@ CROP PDF
 
 
 def cropping_pdf():
+    # Load Template Folder
+    template_folder = os.path.join((os.path.dirname(os.path.splitext(pdf_name)[0])), "templates")
+    if not os.path.exists(template_folder):
+        print(red_text("Templates Folder not found\n"))
+        failed_logs.append(pdf_name)
+        return
     with open(pdf_name, "rb") as in_f:
         log_input = PdfFileReader(in_f)
         x1, y1, x2, y2 = log_input.getPage(0).mediaBox
@@ -643,7 +674,10 @@ def cropping_pdf():
 
         # Load image, template folder and execute matching module using biogenic parameters and threshold
         cropped_pdf_image = (os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log" + p_id + p_id + "_python_convert.png"))
-        template_folder = os.path.join((os.path.dirname(os.path.splitext(pdf_name)[0])), "templates")
+
+        # Delete cropped area PDF
+        os.remove(out_f)
+
         # template_folder = os.path.join((os.path.dirname(os.path.splitext(pdf_name)[0])), "templates")
         matching(cropped_pdf_image, template_folder, 0.70)  # match => pdf_image, folder holding template, matching threshold
 
@@ -813,7 +847,7 @@ def convert(f_name, conv_resol):
     if platform.system() == "Linux":
         im = PIL.Image.open(fil_name)
         rgb_im_neg = im.convert('RGB')
-        if get_colour_name(rgb_im_neg.getpixel((5,5)))[1] == 'black':
+        if get_colour_name(rgb_im_neg.getpixel((5, 5)))[1] == 'black':
             print(red_text('Negative Image\nConverting Image'))
             convert_from_path(f_name, dpi=conv_resol, output_folder=os.path.join(os.path.dirname(f_name)), first_page=convert_p,
                               last_page=convert_p, fmt='png')
@@ -953,7 +987,7 @@ def processing(the_defined_color_map, px_loc):
         if debug_mode == 'yes':  # Print Location // RGB // Color Name of the PIXEL ID Identified.
             if j == 0:
                 print(green_text("\nRAW COLORS\nPrint Location // RGB // Color Name of the PIXEL ID Identified."))
-            print (j, rgb_im.getpixel((approx_predef_x, j)), get_colour_name(rgb_im.getpixel((approx_predef_x, j)))[1])
+            print(j, rgb_im.getpixel((approx_predef_x, j)), get_colour_name(rgb_im.getpixel((approx_predef_x, j)))[1])
         color_map.append(rgb_im.getpixel((approx_predef_x, j)))
 
     print("No. of existing colors in Pixel ID %s column is: %s" % (bold_text(approx_predef_x), bold_text(len(set(color_map)))))
@@ -998,7 +1032,7 @@ def processing_HZ_lines():
                 print(j, rgb_im.getpixel((k, j)), get_colour_name(rgb_im.getpixel((k, j)))[1])
             if get_colour_name(rgb_im.getpixel((k, j)))[1] in look_for:
                 if debug_mode == 'yes':
-                    print("Black line Location", j)  #Display locations of Black Lines
+                    print("Black line Location", j)  # Display locations of Black Lines
                 black_lines.append(int(j))
 
         # if debug_mode == 'yes':
@@ -1012,7 +1046,7 @@ def processing_HZ_lines():
                 print(i)
 
         # After grouping, check the center point of the line.
-        for i in (possible_black_lines):
+        for i in possible_black_lines:
             # print(i)  # DISPLAY Location of possible black lines.
             location_to_check.append((sum(i) / len(i)))
 
@@ -1051,7 +1085,6 @@ def processing_HZ_lines():
         else:
             print("Check Horizontal Depths at: \t%s" % list(set(ALL_PNG) - set(ENV_PNG)))
         ENV_PNG = ALL_PNG
-
 
         # exit("FATAL ERROR!")
 
@@ -1106,7 +1139,7 @@ def log_cleanup(cleanup_color_map, unique_color_map):
     # for x,i in enumerate(cleanup_color_map):
     #     print(x, get_colour_name(i)[1])
 
-    ## MOVE TO NEXT MODULE - REMOVE LINES
+    # MOVE TO NEXT MODULE - REMOVE LINES
     remove_black_lines(cleanup_color_map)
 
 
@@ -1145,7 +1178,7 @@ def remove_black_lines(color_map):
         if debug_mode == 'yes':  # Print Depth // RGB // Color Name
             if i == 0:
                 print(green_text("\nPROCESSED COLORS\nPrint Depth // RGB // Color Name"))
-            print("%.3f // %s // %s" %(m * ((len(color_map) - i) / ratio_px_pt) + c, j, get_colour_name(j)[1]))
+            print("%.3f // %s // %s" % (m * ((len(color_map) - i) / ratio_px_pt) + c, j, get_colour_name(j)[1]))
         color_dict[m * ((len(color_map) - i) / ratio_px_pt) + c] = get_colour_name(j)[1]
 
     print(green_text("\nProcessed color column"))
@@ -1157,12 +1190,14 @@ def remove_black_lines(color_map):
         for k, v in sorted(color_dict.items()):
             print("%0.3f : %s" % (k, v))
 
+
 '''
 FACIES CODE
 
 - Criteria based on Dr. Moslow Email
 - Identifies the logic of the facies code, in accordance to the legend
 '''
+
 
 def facies_code(env_name, litho_color):
 
@@ -1212,19 +1247,19 @@ def facies_code(env_name, litho_color):
     - Tom Moslow Email dated Nov 21, 2018
     '''
 
-    if litho_color == ('Sandy F-C Siltstone to Silty VF Sandstone'):
+    if litho_color == 'Sandy F-C Siltstone to Silty VF Sandstone':
         f_code = str(1)
-    elif litho_color == ('Bituminous F-C Siltstone'):
+    elif litho_color == 'Bituminous F-C Siltstone':
         f_code = str(2)
-    elif litho_color == ('Bituminous F-M Siltstone'):
+    elif litho_color == 'Bituminous F-M Siltstone':
         f_code = str(3)
-    elif litho_color == ('Calcareous - Calcispheric Dolosiltstone'):
+    elif litho_color == 'Calcareous - Calcispheric Dolosiltstone':
         f_code = str(4)
-    elif litho_color == ('Laminated Bedded Resedimented Bioclasts') and env_name != "Claraia":
+    elif litho_color == 'Laminated Bedded Resedimented Bioclasts' and env_name != "Claraia":
         f_code = str(5) + 'A'
-    elif litho_color == ('Laminated Bedded Resedimented Bioclasts') and env_name == "Claraia":
+    elif litho_color == 'Laminated Bedded Resedimented Bioclasts' and env_name == "Claraia":
         f_code = str(5) + 'B'
-    elif litho_color == ('Phosphatic - Bituminous Sandy Siltstone to Breccia'):
+    elif litho_color == 'Phosphatic - Bituminous Sandy Siltstone to Breccia':
         f_code = str(6)
     else:
         f_code = "UNKNOWN"
@@ -1246,7 +1281,7 @@ OUTPUT TO CSV FORMAT
 
 
 def write_to_csv(h_lines, env, color):
-    LAS_Interval = 0.1 # This is the interval that defined how often to output a depth in the LAS File type output.
+    LAS_Interval = 0.1  # This is the interval that defined how often to output a depth in the LAS File type output.
     print(green_text("\nProcessing CSV Information"))
     # Sort all dictionaries
     h_lines = OrderedDict(sorted(h_lines.items(), key=lambda t: t[0]))
@@ -1386,7 +1421,7 @@ def write_to_csv(h_lines, env, color):
         pre_line = next(reader)
         with open(LAS1_output, 'w') as writecsv:
             writer = csv.writer(writecsv, lineterminator='\n')
-            while (True):
+            while True:
                 try:
                     cur_line = next(reader)
                     # Checks to see if the depths are the same. Considers it an overlap and moves to the next line.
@@ -1412,21 +1447,32 @@ def write_to_csv(h_lines, env, color):
     readcsv.close()
 
     print(green_text("MODIFIED LAS output file written"))
+    print("\nTime Taken: \033[1m%s\033[0m\n" % calc_timer_values(time.time() - indiv_time))
+
+
+def processing_complete():
+    print("\nTotal Execution time: \033[1m%s\033[0m\n" % calc_timer_values(time.time() - abs_start))
+    if failed_logs:
+        print(red_text("The following %s file(s) have failed to process:" % len(failed_logs)))
+        for x, i in enumerate(failed_logs):
+            print(bold_text("\t%s - %s" % (x+1, i)))
+
 
 def findSubdirectories(dir_path):
     sub_dirs = []
     for root, dirs, files in os.walk(dir_path):
         # for dir_name in dirs:
         for filename in files:
-            if filename.endswith(('.pdf')):
+            if filename.endswith('.pdf'):
 
                 # print (os.path.join(root,name))
                 sub_dirs.append(os.path.join(root, filename))
                 # print (os.path.join(root,name))
                 # sub_dirs.append(os.path.join(root, dir_name, filename))
-    sub_dirs = sorted(list(set(sub_dirs))) # Sort directories alphabetically in ascending order
+    sub_dirs = sorted(list(set(sub_dirs)))  # Sort directories alphabetically in ascending order
     print("Found \033[1m%s\033[0m sub-directories" % len(sub_dirs))
     return sub_dirs
+
 
 '''
 MAIN MODULE
@@ -1471,10 +1517,14 @@ MAIN MODULE
 #             print(sub_dir)
 #             open_file(sub_dir, args.pixel)
 
+# debugging_mode("")
+
+# debug_mode = ""
+# open_file("/home/aly/Desktop/Progress_Energy/20190415_logs/Progress et al c-65-F_Page 1 revised/Progress et al c-65-F_Page 1 revised.pdf", 765)
+
 if __name__ == "__main__":
     try:
         import multiprocessing
-
 
         # answer = "Y"
 
@@ -1488,6 +1538,5 @@ if __name__ == "__main__":
         # p = multiprocessing.Process(target=main, args=(q,))
         # p.start()
         # p.join()
-        print("\nTotal Execution time: \033[1m%s\033[0m\n" % calc_timer_values(time.time() - abs_start))
     except KeyboardInterrupt:
         exit("TERMINATED BY USER")

@@ -1,5 +1,5 @@
 # /////////////////////////////////////////////////////////////// #
-# !python2.7
+# !python3.6
 # -*- coding: utf-8 -*-
 # Python Script initially created on 03/03/19 
 # Compiled by Aly @ Grasselli Geomechanics Group, UofT, 2019 
@@ -7,15 +7,17 @@
 # Current Version - Dated Apr 23, 2018
 # /////////////////////////////////////////////////////////////// #
 
-import time
+# import time
+
 # /// TIMER FUNCTION /// #
+
 
 def calc_timer_values(end_time):
     minutes, sec = divmod(end_time, 60)
     if end_time < 60:
-        return ("\033[1m%.2f seconds\033[0m" % end_time)
+        return("\033[1m%.2f seconds\033[0m" % end_time)
     else:
-        return ("\033[1m%d minutes and %d seconds\033[0m." % (minutes, sec))
+        return("\033[1m%d minutes and %d seconds\033[0m." % (minutes, sec))
 
 
 # /// ADMINISTRATIVE AND SORTING OF FILES IN FOLDER /// #
@@ -35,11 +37,12 @@ def bold_text(val):  # Bold text
     tex = "\033[1m%s\033[0m" % val
     return tex
 
+
 def walk(obj, fnt, emb):
     '''
     If there is a key called 'BaseFont', that is a font that is used in the document.
     If there is a key called 'FontName' and another key in the same dictionary object
-    that is called 'FontFilex' (where x is null, 2, or 3), then that fontname is
+    that is called 'FontFilex' (where x is null, 2, or 3), then that font name is
     embedded.
 
     We create and add to two sets, fnt = fonts used and emb = fonts embedded.
@@ -58,30 +61,31 @@ def walk(obj, fnt, emb):
 
     return fnt, emb  # return the sets for each page
 
+
 def main(f_name):
-    from pdfminer.pdfparser import PDFParser
-    from pdfminer.pdfdocument import PDFDocument
+    # from pdfminer.pdfparser import PDFParser
+    # from pdfminer.pdfdocument import PDFDocument
     from PyPDF2 import PdfFileReader
 
     # for i in sub_dirs:
 
-    fp = open(f_name, 'rb')
-    parser = PDFParser(fp)
+    # fp = open(f_name, 'rb')
+    # parser = PDFParser(fp)
     # doc = PDFDocument(parser)
     pdf_toread = PdfFileReader(open(f_name, "rb"))
     pdf_info = pdf_toread.getDocumentInfo()
     try:
         date = pdf_info['/CreationDate']
-        Producer = pdf_info['/Producer']
-        Creator = pdf_info['/Creator']
-        Author = pdf_info['/Author']
+        producer = pdf_info['/Producer']
+        creator = pdf_info['/Creator']
+        author = pdf_info['/Author']
     except KeyError:
         date = "Unknown"
-        Author = "Unknown"
-        Creator = "Unknown"
-        Producer = "Unknown"
+        author = "Unknown"
+        creator = "Unknown"
+        producer = "Unknown"
     print(
-        green_text("PDF Engines %s %s, Made by %s on %s" % (str(Producer), str(Creator), str(Author), str(date)[2:10])))
+        green_text("PDF Engines %s %s, Made by %s on %s" % (str(producer), str(creator), str(author), str(date)[2:10])))
 
     '''
     CHECK FONTS

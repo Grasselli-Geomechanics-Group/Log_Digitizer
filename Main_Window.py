@@ -1,5 +1,5 @@
 # /////////////////////////////////////////////////////////////// #
-# !python2.7
+# !python3.6
 # -*- coding: utf-8 -*-
 # Python Script initially created on 2019-04-11 
 # Compiled by Aly @ Grasselli Geomechanics Group, UofT, 2019 
@@ -16,8 +16,16 @@ LOAD .py MODULES
 
 
 import image  # Load main processing script
-import pdf_file_info  # Load the PDF File info
+# import pdf_file_info  # Load the PDF File info
 import folder_structure  # Create a proper folder structure if the PDFs are all in one folder
+
+'''
+Global Variables
+'''
+
+
+global filename
+global debug_mode
 
 
 '''
@@ -28,9 +36,10 @@ Tkinter Check
 
 ver = sys.version
 if ver[0] == str(2):
-    from Tkinter import *
+    exit("\nSCRIPT ONLY WORKS ON PYTHON 3\n")
+    # from Tkinter import *
     # from Tkinter import filedialog
-    from tkinter.filedialog import askopenfilename, askdirectory
+    # from tkinter.filedialog import askopenfilename, askdirectory
 else:
     from tkinter import *
     # from tkinter import filedialog
@@ -45,9 +54,7 @@ GUI CLASS
 '''
 
 
-class CORE_GUI(Frame):
-    global filename
-
+class Core_GUI(Frame):
     def __init__(self, master):
 
         Frame.__init__(self, master)
@@ -58,8 +65,8 @@ class CORE_GUI(Frame):
         self.master = master
         master.title("Core Log Interpreter")
 
-        self.input = Frame(master, borderwidth= 5, relief= GROOVE)
-        self.input.pack(anchor= CENTER, fill=BOTH)
+        self.input = Frame(master, borderwidth=5, relief=GROOVE)
+        self.input.pack(anchor=CENTER, fill=BOTH)
 
         self.status = Frame(master, borderwidth=5, relief=GROOVE)
         self.status.pack(anchor=CENTER, fill=BOTH)
@@ -81,7 +88,7 @@ class CORE_GUI(Frame):
         self.pixel_label.grid(row=4, column=1, sticky=W)
 
         self.v = IntVar()
-        self.v.set(750)
+        self.v.set(765)
         self.pixel_ID = Entry(self.input, textvariable=self.v)
         self.pixel_ID.grid(row=4, column=2, sticky=W)
 
@@ -92,7 +99,7 @@ class CORE_GUI(Frame):
         self.organizing_grid()
 
     def organizing_grid(self):
-        for x in range (0,1):
+        for x in range(0, 1):
             self.input.grid_columnconfigure(x, weight=1, uniform='a')
             self.status.grid_columnconfigure(x, weight=1, uniform='a')
 
@@ -102,7 +109,7 @@ class CORE_GUI(Frame):
 
         # UPDATE GUI
         self.state = Label(self.status, text="WORKING...", font=(None, 8))
-        self.state.grid(row=1, column=1, sticky=N+S+E+W)
+        self.state.grid(row=1, column=1, sticky=W)
         self.update()
 
         # Check debugging
@@ -115,17 +122,17 @@ class CORE_GUI(Frame):
         # Execute image.py
         if filename:
             image.open_file(filename, self.v.get())
+            image.processing_complete()
 
         root.destroy()
 
     def batch_folder(self):
-        global debug_mode
         # show an "Open" dialog box and return the path to the selected folder
         filename = askdirectory()
 
         # UPDATE GUI
         self.state = Label(self.status, text="WORKING...", font=(None, 8))
-        self.state.grid(row=1, column=1, sticky=N+S+E+W)
+        self.state.grid(row=1, column=1, sticky=W)
         self.update()
 
         # Check debugging
@@ -142,15 +149,16 @@ class CORE_GUI(Frame):
             # Loop over directory(ies)
             if directories is not None and directories:
                 for sub_dir in directories:
-                    print(sub_dir)
                     image.open_file(sub_dir, self.v.get())
+                image.processing_complete()
 
         root.destroy()
+
 
 if __name__ == "__main__":
     try:
         root = Tk()
-        core_interpreter_gui = CORE_GUI(root)
+        core_interpreter_gui = Core_GUI(root)
         root.mainloop()
     except KeyboardInterrupt:
         exit("TERMINATED BY USER")
