@@ -7,7 +7,29 @@
 # Current Version 01 - Dated Apr 11, 2019
 # /////////////////////////////////////////////////////////////// #
 
-import sys
+import sys# import csv
+# import webcolors
+#
+# defined_color_map = []
+# rg_list = []
+# new_list = []
+# litho_csv = "litho_legend.csv"
+# color_csv = "defined_color_map.csv"
+# with open(litho_csv, mode='r') as infile:
+#     reader = csv.reader(infile)
+#     litho_legend = {rows[0]:rows[1] for rows in reader}
+#     b = webcolors.name_to_rgb(rows[0] for rows in reader)[0], webcolors.name_to_rgb(rows[0] for rows in reader)[1], webcolors.name_to_rgb(rows[0] for rows in reader)[2]
+#     print(b)
+# infile.close()
+#
+# for key in litho_legend:
+#     a = webcolors.name_to_rgb(key)[0], webcolors.name_to_rgb(key)[1], webcolors.name_to_rgb(key)[2]
+#     defined_color_map.append(a)
+#
+# print(defined_color_map)
+#
+# print(litho_legend)
+
 import os
 
 '''
@@ -116,14 +138,18 @@ class Core_GUI(Frame):
             self.input.grid_columnconfigure(x, weight=1, uniform='a')
             self.status.grid_columnconfigure(x, weight=1, uniform='a')
 
+    def gui_update(self):
+        # UPDATE GUI
+        self.state = Label(self.status, text="WORKING...", font=(None, 8))
+        self.state.grid(row=1, column=1, sticky=W)
+        self.update()
+
     def single_file(self):
         # show an "Open" dialog box and return the path to the selected file
         filename = askopenfilename(filetypes=[("PDF files", ("*.pdf", "*.PDF"))])
 
         # UPDATE GUI
-        self.state = Label(self.status, text="WORKING...", font=(None, 8))
-        self.state.grid(row=1, column=1, sticky=W)
-        self.update()
+        self.gui_update()
 
         # Check debugging
         image.debugging_mode(self.deb_status.get())
@@ -144,9 +170,7 @@ class Core_GUI(Frame):
         filename = askdirectory()
 
         # UPDATE GUI
-        self.state = Label(self.status, text="WORKING...", font=(None, 8))
-        self.state.grid(row=1, column=1, sticky=W)
-        self.update()
+        self.gui_update()
 
         # Check debugging
         image.debugging_mode(self.deb_status.get())

@@ -4,7 +4,7 @@
 # Python Script initially created on 18/11/2018
 # Compiled by Aly @ Grasselli's Geomechanics Group, UofT, 2018
 # Created using PyCharm // Tested on Spyder
-# Current Version 01 - Dated Novemeber 18, 2018
+# Current Version 01 - Dated November 18, 2018
 # /////////////////////////////////////////////////////////////// #
 
 # Code written to convert modified CSV files to LAS
@@ -1117,7 +1117,7 @@ def write_to_csv(h_lines, env, color, bl_unique_loc):
         h_lines[k].append(val)
 
     # Cleaning blank space from being output
-    # If white presentes 99/100 % of the color along that line
+    # If white presents 99/100 % of the color along that line
     for k, v in list(h_lines.items()):
         if list(v[3][0])[0] == 'Blank Space' and list(v[3][0])[1] in [99, 100]:
             del h_lines[k]
