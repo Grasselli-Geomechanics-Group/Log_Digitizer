@@ -143,8 +143,9 @@ GLOBAL OPENING OF FILE
 '''
 
 
-def open_file(f_name, px_location):
-    global indiv_time
+def open_file(f_name, px_location, LAS_Interval_precsision):
+    global indiv_time, LAS_Interval
+    LAS_Interval = LAS_Interval_precsision
     indiv_time = time.time()
     val = pdf_file_info.main(f_name)
     if val == 'yes':
@@ -1240,30 +1241,53 @@ def facies_code(env_name, litho_color):
     # else:
     #     f_code = "UNKNOWN"
 
+    # '''
+    # For Version 07
+    #
+    # - Facies code based on "COLOR" and key word "CLARAIA"
+    # - Tom Moslow Email dated Nov 21, 2018
+    # '''
+    #
+    # if litho_color == 'Sandy F-C Siltstone to Silty VF Sandstone':
+    #     f_code = str(1)
+    # elif litho_color == 'Bituminous F-C Siltstone':
+    #     f_code = str(2)
+    # elif litho_color == 'Bituminous F-M Siltstone':
+    #     f_code = str(3)
+    # elif litho_color == 'Calcareous - Calcispheric Dolosiltstone':
+    #     f_code = str(4)
+    # elif litho_color == 'Laminated Bedded Resedimented Bioclasts' and env_name != "Claraia":
+    #     f_code = str(5) + 'A'
+    # elif litho_color == 'Laminated Bedded Resedimented Bioclasts' and env_name == "Claraia":
+    #     f_code = str(5) + 'B'
+    # elif litho_color == 'Phosphatic - Bituminous Sandy Siltstone to Breccia':
+    #     f_code = str(6)
+    # else:
+    #     f_code = "UNKNOWN"
+
     '''
-    For Version 07
-    
-    - Facies code based on "COLOR" and key word "CLARAIA"
-    - Tom Moslow Email dated Nov 21, 2018
-    '''
+        For Version 08
+
+        - Facies code based on "COLOR" and key word "CLARAIA"
+        - David Hewitt based on Petrel input requirements
+        '''
 
     if litho_color == 'Sandy F-C Siltstone to Silty VF Sandstone':
-        f_code = str(1)
+        f_code = str(0)
     elif litho_color == 'Bituminous F-C Siltstone':
-        f_code = str(2)
+        f_code = str(1)
     elif litho_color == 'Bituminous F-M Siltstone':
-        f_code = str(3)
+        f_code = str(2)
     elif litho_color == 'Calcareous - Calcispheric Dolosiltstone':
-        f_code = str(4)
+        f_code = str(3)
     elif litho_color == 'Laminated Bedded Resedimented Bioclasts' and env_name != "Claraia":
-        f_code = str(5) + 'A'
+        f_code = str(4)
     elif litho_color == 'Laminated Bedded Resedimented Bioclasts' and env_name == "Claraia":
-        f_code = str(5) + 'B'
+        f_code = str(5)
     elif litho_color == 'Phosphatic - Bituminous Sandy Siltstone to Breccia':
         f_code = str(6)
     else:
         f_code = "UNKNOWN"
-
     # DISPLAY Lithology Name, "Claraia", Facies Code
     if debug_mode == 'yes':
         print(litho_color, env_name, f_code)
@@ -1281,7 +1305,8 @@ OUTPUT TO CSV FORMAT
 
 
 def write_to_csv(h_lines, env, color):
-    LAS_Interval = 0.1  # This is the interval that defined how often to output a depth in the LAS File type output.
+    # LAS_Interval = 0.01  # This is the interval that defined how often to output a depth in the LAS File type output.
+    LAS_Interval_prec = int((len(str(LAS_Interval).split('.')[1])))
     print(green_text("\nProcessing CSV Information"))
     # Sort all dictionaries
     h_lines = OrderedDict(sorted(h_lines.items(), key=lambda t: t[0]))
@@ -1387,7 +1412,7 @@ def write_to_csv(h_lines, env, color):
             else:
                 litho = color_at_def_depth
             # print("%.1f\t-\t%.1f : %s\t%s\t%s\t%s" % (v[0], v[1], v[2], litho, v[4], v[3])) # Print to terminal window
-            writer.writerow(["{0:.1f}".format(v[0]), "{0:.1f}".format(v[1]), v[2], litho, v[4]] + v[3])
+            writer.writerow(["{0:.{prec}f}".format(v[0], prec = LAS_Interval_prec), "{0:.{prec}f}".format(v[1], prec = LAS_Interval_prec), v[2], litho, v[4]] + v[3])
     writecsv.close()
     print(green_text("Depth interval output file written"))
 
@@ -1407,7 +1432,7 @@ def write_to_csv(h_lines, env, color):
                     litho = color_at_def_depth
                 f_code = facies_code(v[2], litho)
                 # print('%.1f \t%s \t%s \t%s \t%s' % (round(i, 1), f_code, litho, v[4], v[3]))  # Print to terminal window
-                writer.writerow(["{0:.1f}".format(i), f_code, litho, v[4]] + v[3])
+                writer.writerow(["{0:.{prec}f}".format(i, prec = LAS_Interval_prec), f_code, litho, v[4]] + v[3])
     writecsv.close()
     print(green_text("LAS output file written"))
 
@@ -1442,7 +1467,7 @@ def write_to_csv(h_lines, env, color):
             except UnboundLocalError:
                 new_px_loc = px_loc - 5
                 print(red_text("\nDefault Pixel Column incorrect.\nReloading Script and adjusting Pixel to %s\n" % new_px_loc))
-                open_file(pdf_name, new_px_loc)
+                open_file(pdf_name, new_px_loc, LAS_Interval_prec)
     writecsv.close()
     readcsv.close()
 

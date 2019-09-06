@@ -62,6 +62,7 @@ class Core_GUI(Frame):
         self.frame1 = Frame(master)
         self.frame1.pack()
 
+        #Heading
         self.master = master
         master.title("Core Log Interpreter")
 
@@ -74,16 +75,19 @@ class Core_GUI(Frame):
         self.label = Label(self.input, text="Core Log Interpreter", font='Helvetica 14 bold')
         self.label.grid(row=1, column=1, sticky=W)
 
+        #Execution Buttons
         self.greet_button = Button(self.input, text="BATCH FOLDER", fg="red", command=self.batch_folder)
         self.greet_button.grid(row=2, column=1, sticky=W)
 
         self.close_button = Button(self.input, text="SINGLE FILE", command=self.single_file)
         self.close_button.grid(row=2, column=2, sticky=W)
 
+        #Allow for the Folder structure option
         self.folder_structure_status = IntVar()
         self.folder_structure = Checkbutton(self.input, text="Enable Folder Structure", variable=self.folder_structure_status)
         self.folder_structure.grid(row=3, column=1, sticky=W)
 
+        #Predefined Pixel ID
         self.pixel_label = Label(self.input, text="Pixel ID")
         self.pixel_label.grid(row=4, column=1, sticky=W)
 
@@ -92,9 +96,18 @@ class Core_GUI(Frame):
         self.pixel_ID = Entry(self.input, textvariable=self.v)
         self.pixel_ID.grid(row=4, column=2, sticky=W)
 
+        #Predefined Precision
+        self.LAS_precision = Label(self.input, text="Precision")
+        self.LAS_precision.grid(row=5, column=1, sticky=W)
+
+        self.v1 = DoubleVar()
+        self.v1.set(0.1)
+        self.LAS_precision_int = Entry(self.input, textvariable=self.v1)
+        self.LAS_precision_int.grid(row=5, column=2, sticky=W)
+
         self.deb_status = IntVar()
         self.debug_mode_status = Checkbutton(self.input, text="Enable Debugging", variable=self.deb_status)
-        self.debug_mode_status.grid(row=5, column=1, sticky=W)
+        self.debug_mode_status.grid(row=6, column=1, sticky=W)
 
         self.organizing_grid()
 
@@ -121,7 +134,7 @@ class Core_GUI(Frame):
 
         # Execute image.py
         if filename:
-            image.open_file(filename, self.v.get())
+            image.open_file(filename, self.v.get(), self.v1.get())
             image.processing_complete()
 
         root.destroy()
@@ -149,7 +162,7 @@ class Core_GUI(Frame):
             # Loop over directory(ies)
             if directories is not None and directories:
                 for sub_dir in directories:
-                    image.open_file(sub_dir, self.v.get())
+                    image.open_file(sub_dir, self.v.get(), self.v1.get())
                 image.processing_complete()
 
         root.destroy()

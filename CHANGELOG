@@ -1,3 +1,7 @@
+20191006 - Version 09
+Precision is user defined to create the number of decimal places in LAS File. Defined in the GUI.
+New numbering convention for the facies.
+
 20190412 - Version 08
 Has a user interface.
 Supports PDF with more than one page.
