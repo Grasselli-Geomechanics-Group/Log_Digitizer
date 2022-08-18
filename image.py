@@ -107,8 +107,8 @@ infile.close()
 # Defined colors [(tan), (sandybrown), (skyblue), (khaki), (plum), (darksgreen), (white), (black), (rosybrown)]
 # defined_color_map = [(210, 180, 140), (244, 164, 96), (135, 206, 235), (240, 230, 140), (143, 188, 143), (221, 160, 221), (218, 165, 32), (189, 183, 107), (255, 255, 255), (0, 0, 0), (181, 150, 117), (55, 52, 53), (165, 71, 134), (112, 156, 207)  ]
 
-if len(litho_legend) != len(defined_color_map):
-    exit("The defined Color Map must match the Color Code Name.\nCheck Dictionaries in the script.")
+# if len(litho_legend) != len(defined_color_map) - 1:
+#     exit("The defined Color Map must match the Color Code Name.\nCheck Dictionaries in the script.")
 
 
 '''
@@ -123,6 +123,18 @@ def debugging_mode(state):
     else:
         debug_mode = ""
 
+
+'''
+CHECK CUTTINGS STATUS
+'''
+
+
+def cuttings_mode(state):
+    global cuttings_mode
+    if state == 1:
+        cuttings_mode = "yes"
+    else:
+        cuttings_mode = ""
 
 '''
 CHECK Python Version
@@ -143,10 +155,15 @@ GLOBAL OPENING OF FILE
 '''
 
 
-def open_file(f_name, px_location, LAS_Interval_precsision):
+def open_file(f_name, px_location, LAS_Interval_precsision, left_depth, rigth_depth, unit_of_measure='meters'):
     global indiv_time, LAS_Interval
     LAS_Interval = LAS_Interval_precsision
     indiv_time = time.time()
+    global r_depth_pixel, l_depth_pixel
+    l_depth_pixel = left_depth
+    r_depth_pixel = rigth_depth
+    global scale_unit_of_measure
+    scale_unit_of_measure = unit_of_measure
     val = pdf_file_info.main(f_name)
     if val == 'yes':
         print(red_text("Skipping File"))
@@ -205,7 +222,7 @@ DEFINE THE RGB SPECTRUM FOR VISUAL APPEAL
 
 def closest_colour(requested_colour):
     min_colours = {}
-    for key, name in webcolors.css3_hex_to_names.items():
+    for key, name in webcolors.CSS3_HEX_TO_NAMES.items():
         r_c, g_c, b_c = webcolors.hex_to_rgb(key)
         rd = (r_c - requested_colour[0]) ** 2
         gd = (g_c - requested_colour[1]) ** 2
@@ -258,7 +275,10 @@ def parse_obj(lt_objs):
     global failed_log
     failed_log = ''
     coord, corel, depths = [], {}, {}
-    y_loc = tot_len - 190
+    if cuttings_mode == 'yes':
+        y_loc = tot_len - 150
+    else:
+        y_loc = tot_len - 190
 
     '''
     PROCESS // PARSE DEPTH ALL DATA
@@ -266,21 +286,31 @@ def parse_obj(lt_objs):
     - Y is captured as the mid-height of the bounding box.
     '''
 
+
+
+    def replace_all(text):
+        replace_dic = {'\r\n': "_",
+                        '\n': "_",
+                        '\r': "_"}
+        for i, j in replace_dic.items():
+            text = text.replace(i, j)
+
     # bbox(bounding box) attribute of a textbox, is a four-part tuple of the object's page position: (x0, y0, x1, y1)
     # position is returned in terms of Pt. units. Where the '0' reference is attributed to the bottom-right of the page.
     for obj in lt_objs:
         # if it is a textbox, print text and location
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
             y_mid_height = (obj.bbox[1] + obj.bbox[3]) / 2
-            # DISPLAY All OCR Matches on the page.
-            # print("%6d, %6d, %6d, %6d, => %6d - %6d => dx=%6d dy=%6d - %s" % (obj.bbox[0], obj.bbox[1], obj.bbox[2], obj.bbox[3], obj.bbox[0], y_mid_height, obj.bbox[2] - obj.bbox[0], obj.bbox[3] - obj.bbox[1],  obj.get_text().replace('\n','_')))  # Print all OCR Matches and the bounding box locations.
+            # DISPLAY All Text Extraction Matches on the page.
+            # print("%6d, %6d, %6d, %6d, => %6d - %6d => dx=%6d dy=%6d - %s" % (obj.bbox[0], obj.bbox[1], obj.bbox[2], obj.bbox[3], obj.bbox[0], y_mid_height, obj.bbox[2] - obj.bbox[0], obj.bbox[3] - obj.bbox[1],  obj.get_text().replace('\n','_')))  # Print all Text Extraction Matches and the bounding box locations.
             coord.append([obj.bbox[0], y_mid_height])  # List of all X/Y of bounding boxes. Y is mid/height.
-            corel[obj.get_text().replace('\n', '_')] = [obj.bbox[0], y_mid_height]  # Dictionary of {TEXT : [X , Y]}
+            clean_txt = replace_all(obj.get_text())
+            corel[clean_txt] = [obj.bbox[0], y_mid_height]  # Dictionary of {TEXT : [X , Y]}
         # if it is a container, recurse. That is, LTFigure objects are containers for other LT* objects, so recurse through the children
         elif isinstance(obj, pdfminer.layout.LTFigure):
             parse_obj(obj._objs)
 
-    print(green_text("PDF OCR COMPLETED. \n"))
+    print(green_text("PDF Text Extraction COMPLETED. \n"))
 
     # Run the module to obtain any possible information of the log.
     try:
@@ -292,24 +322,40 @@ def parse_obj(lt_objs):
     '''
     PROCESS // PARSE DEPTH COLUMN
     
-    - Lookup depth column (X = 40 to 60 & Y = y_top from top of page).
+    - Lookup depth column (X = 40 to 60 & Y = y_top from top of page). => Tom Moslow Logs
+    - Lookup depth column (X = 280 to 305 & Y = y_top from top of page). => Alessandro Cuttings Logs
     - Identifies presence of integers to establish scale.
     - Returns error if anything apart from integers is encountered.
     '''
     # IMPORTANT NOTE: May return weird values if there are weird numbers in the column.
 
+    depth_col_x1, depth_col_x2 = l_depth_pixel, r_depth_pixel
+    if cuttings_mode == "yes":
+        print("Processing Cuttings Logs")
+        depth_col_x1, depth_col_x2 = 250, 308
+    else:
+        depth_col_x1, depth_col_x2 = 40, 60
+
     for obj in lt_objs:
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
-            if int(obj.bbox[0]) in range(40, 60) and int(obj.bbox[1]) < y_loc:
+            if int(obj.bbox[0]) in range(depth_col_x1, depth_col_x2) and int(obj.bbox[1]) < y_loc:
                 # Checks for integers, produces error and continues if non-integer encountered
                 try:
                     y_mid_height = (obj.bbox[1] + obj.bbox[3]) / 2
                     depths[int(y_mid_height)] = int(obj.get_text().replace('\n', ''))
                 except ValueError:
-                    print(red_text("Error in Depth Column\nPossible text detected:\t %s" % obj.get_text().replace('\n', '_')))
+                    print(red_text("Error in Depth Column\nPossible text detected:\t %s\nTrying to Decompose Values" % obj.get_text().replace('\n', '_')))
+                    text_list = obj.get_text().split('\n')
+                    for i in text_list:
+                        try:
+                            depth_text = int(i)
+                            y_mid_height = (obj.bbox[1] + obj.bbox[3]) / 2
+                            depths[int(y_mid_height)] = depth_text
+                        except ValueError:
+                            print("")
 
     # Sort by location in the column
-    # Separate the OCR depth from the point location
+    # Separate the Text Extraction depth from the point location
     depths = OrderedDict(sorted(depths.items(), key=lambda t: t[0]))
     # Check it there is TEXT in the depth column
     # Else skip to next file.
@@ -333,7 +379,7 @@ def parse_obj(lt_objs):
     # import statistics
     # print(statistics.stdev([(x*1.0) / y for x,y in zip(list_a, list_b)]))
 
-    # Equation of linear correlation between OCR depth [a] & Pt. location [b]
+    # Equation of linear correlation between Text Extraction depth [a] & Pt. location [b]
     # between second and second last to avoid movement of last depth avoiding extension of page
     # Identified and overcomes depths at extents of log (Lily a-9-J).
     if len(a) > 3:
@@ -344,11 +390,11 @@ def parse_obj(lt_objs):
     coeff(x, y)
 
     # DISPLAY the entire depth column matches {DEPTH : VALUE}
-    print(green_text("\nProcessed Depth Column - OCR Mode.\nCoeff : %.3f x + %.3f.\n" % (m, c)))
-    print("Pt. : OCR Depth value")
+    print(green_text("\nProcessed Depth Column - Text Extraction Mode.\nCoeff : %.3f x + %.3f.\n" % (m, c)))
+    print("Pt. : Text Extraction Depth value")
     for key in depths:
-        # DISPLAY the OCR of the text sequence {Pt. : OCR Depth value}
-        print("%s Pt. : %s meters" % (key, bold_text(depths[key])))
+        # DISPLAY the Text Extraction of the text sequence {Pt. : Text Extraction Depth value}
+        print("%s Pt. : %s %s" % (key, bold_text(depths[key]), scale_unit_of_measure))
 
     '''
     PROCESS // PARSE ENVIRONMENT COLUMN
@@ -392,7 +438,7 @@ def parse_obj(lt_objs):
     - Identify and overcome manual "returns" (Enter Key)
     '''
 
-    # print(bold_text("\nValidating OCR in Environment Column\n"))
+    # print(bold_text("\nValidating Text Extraction in Environment Column\n"))
     # if dys:
     #     print(bold_text("Manual 'Enter' detected. Defined as %.2f Pt.\n" % dy))
     # for key, v in list(texts.items()):
@@ -460,9 +506,9 @@ def parse_obj(lt_objs):
 
     env_matches = OrderedDict(sorted(env_matches.items()))
     # DISPLAY the entire environment matches {DEPTH : VALUE}
-    print(green_text("\nProcessed Environments (Key Word) - OCR Mode\n"))
+    print(green_text("\nProcessed Environments (Key Word) - Text Extraction Mode\n"))
     if len(env_matches) > 0:
-        print('Depth (m) : Environment (Key Word)')
+        print('Depth (%s) : Environment (Key Word)' % scale_unit_of_measure)
         for key in env_matches:
             print("%.3f : %s" % (key, bold_text(env_matches[key])))
     else:
@@ -645,42 +691,46 @@ CROP PDF
 
 
 def cropping_pdf():
-    # Load Template Folder
-    template_folder = os.path.join((os.path.dirname(os.path.splitext(pdf_name)[0])), "templates")
-    if not os.path.exists(template_folder):
-        print(red_text("Templates Folder not found\n"))
-        failed_logs.append(pdf_name)
-        return
-    with open(pdf_name, "rb") as in_f:
-        log_input = PdfFileReader(in_f)
-        x1, y1, x2, y2 = log_input.getPage(0).mediaBox
-        # numpages = log_input.getNumPages()
-        sed_struc_log_output = PdfFileWriter()
+    if cuttings_mode != "yes":
+        # Load Template Folder
+        template_folder = os.path.join((os.path.dirname(os.path.splitext(pdf_name)[0])), "templates")
+        if not os.path.exists(template_folder):
+            print(red_text("Templates Folder not found\n"))
+            failed_logs.append(pdf_name)
+            return
+        with open(pdf_name, "rb") as in_f:
+            log_input = PdfFileReader(in_f)
+            x1, y1, x2, y2 = log_input.getPage(0).mediaBox
+            # numpages = log_input.getNumPages()
+            sed_struc_log_output = PdfFileWriter()
 
-        # Crop off the sed_biogenic column
-        # for i in range(numpages):
-        sed_struc_log = log_input.getPage(page_count - 1)
-        sed_struc_log.mediaBox.lowerLeft = (240, y2)
-        sed_struc_log.mediaBox.upperRight = (215, y1)
-        sed_struc_log_output.addPage(sed_struc_log)
+            # Crop off the sed_biogenic column
+            # for i in range(numpages):
+            sed_struc_log = log_input.getPage(page_count - 1)
+            sed_struc_log.mediaBox.lowerLeft = (240, y2)
+            sed_struc_log.mediaBox.upperRight = (190, y1) # 215
+            sed_struc_log_output.addPage(sed_struc_log)
 
-        # Write cropped area as a new PDF
-        with open((os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log" + p_id + ".pdf")), "wb") as out_f:
-            sed_struc_log_output.write(out_f)
-        out_f.close()
+            # Write cropped area as a new PDF
+            with open((os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log" + p_id + ".pdf")), "wb") as out_f:
+                sed_struc_log_output.write(out_f)
+            out_f.close()
 
-        # Open PDF and convert to PNG (h_resol) for image processing.
-        out_f = (os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log" + p_id + ".pdf"))
-        convert(out_f, h_resol)
+            # Open PDF and convert to PNG (h_resol) for image processing.
+            out_f = (os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log" + p_id + ".pdf"))
+            convert(out_f, h_resol)
 
-        # Load image, template folder and execute matching module using biogenic parameters and threshold
-        cropped_pdf_image = (os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log" + p_id + p_id + "_python_convert.png"))
+            # Load image, template folder and execute matching module using biogenic parameters and threshold
+            cropped_pdf_image = (os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log" + p_id + p_id + "_python_convert.png"))
 
-        # Delete cropped area PDF
-        os.remove(out_f)
+            # Delete cropped area PDF
+            os.remove(out_f)
 
-        # template_folder = os.path.join((os.path.dirname(os.path.splitext(pdf_name)[0])), "templates")
-        matching(cropped_pdf_image, template_folder, 0.70)  # match => pdf_image, folder holding template, matching threshold
+            # template_folder = os.path.join((os.path.dirname(os.path.splitext(pdf_name)[0])), "templates")
+            matching(cropped_pdf_image, template_folder, 0.70)  # match => pdf_image, folder holding template, matching threshold
+    else:
+        print("Skipping Template Matching")
+        write_to_csv(overall_dictionary, env_matches, color_dict)
 
 
 '''
@@ -751,7 +801,7 @@ def matching(match_fil_name, folder, threshold):
     cv2.imwrite(os.path.join(os.path.dirname(match_fil_name), output_file_name), img_bgr)
     print(bold_text("Detected image saved.\n"))
 
-    write_to_csv(overall_dictionary, env_matches, color_dict)
+    write_to_csv(overall_dictionary, env_matches, color_dict, unique_loc)
 
 
 '''
@@ -802,7 +852,7 @@ def find(pattern, path):
 def rename(new_f_name):
     time.sleep(5)
     page_convert_number = str('*-' + str(page_count) + '.png')
-    print(page_convert_number)
+    # print(page_convert_number)
     names = find(page_convert_number, os.path.dirname(new_f_name))
     fil_name = os.path.splitext(new_f_name)[0] + p_id + '_python_convert.png'
     for i in names:
@@ -825,14 +875,16 @@ def convert(f_name, conv_resol):
     from wand.color import Color
     import wand.exceptions
     from pdf2image import convert_from_path, convert_from_bytes
-
+    # print(f_name, conv_resol)
     if len(p_id) == 0:
         convert_p = 1
     else:
         convert_p = page_count
+        print("Converting Page %s with PID %s" % (convert_p, p_id))
 
     try:
         with Image(filename=f_name, resolution=conv_resol) as img:
+            # print(img.width, img.height)
             with Image(width=img.width, height=img.height, background=Color("white")) as bg:
                 bg.composite(img, 0, 0)
                 # bg.alpha_channel = False
@@ -848,7 +900,7 @@ def convert(f_name, conv_resol):
     if platform.system() == "Linux":
         im = PIL.Image.open(fil_name)
         rgb_im_neg = im.convert('RGB')
-        if get_colour_name(rgb_im_neg.getpixel((5, 5)))[1] == 'black':
+        if get_colour_name(rgb_im_neg.getpixel((20, 1000)))[1] == 'black':
             print(red_text('Negative Image\nConverting Image'))
             convert_from_path(f_name, dpi=conv_resol, output_folder=os.path.join(os.path.dirname(f_name)), first_page=convert_p,
                               last_page=convert_p, fmt='png')
@@ -870,6 +922,7 @@ GET PNG / PDF RATIO
 
 def ratio():
     global ratio_px_pt
+    # print(height, tot_len)
     ratio_px_pt = height / tot_len
     return ratio_px_pt
 
@@ -987,12 +1040,14 @@ def processing(the_defined_color_map, px_loc):
     for j in range(0, height, 1):
         if debug_mode == 'yes':  # Print Location // RGB // Color Name of the PIXEL ID Identified.
             if j == 0:
+                print(m,c,j,ratio_px_pt, len(color_map))
                 print(green_text("\nRAW COLORS\nPrint Location // RGB // Color Name of the PIXEL ID Identified."))
-            print(j, rgb_im.getpixel((approx_predef_x, j)), get_colour_name(rgb_im.getpixel((approx_predef_x, j)))[1])
+            print(m * ((height - j) / ratio_px_pt) + c, j, rgb_im.getpixel((approx_predef_x, j)), get_colour_name(rgb_im.getpixel((approx_predef_x, j)))[1])
         color_map.append(rgb_im.getpixel((approx_predef_x, j)))
 
     print("No. of existing colors in Pixel ID %s column is: %s" % (bold_text(approx_predef_x), bold_text(len(set(color_map)))))
 
+    # exit("Checking Pixel and Depth and Raw Colors")
     # Colors used in cleanup
     unique_color_map = the_defined_color_map
     print("Looking up a total of %s defined colors." % bold_text(len(set(unique_color_map))))
@@ -1016,7 +1071,7 @@ PROCESS THE HORIZONTAL LINES
 '''
 
 
-def processing_HZ_lines():
+def processing_HZ_lines(debug_mode='no'):
     print(green_text("\nProcessing Hz lines - PNG Mode"))
     HZ_lines = {}
     print("Image Loaded - Dimensions %s px X %s px @ %s dpi.\nPixel to Point ratio is: %.3f" % (width, height, 300, ratio_px_pt))
@@ -1107,7 +1162,7 @@ def processing_HZ_lines():
     print(green_text("\nProcessed Hz lines - PNG Mode\n"))
 
     # DISPLAY identified layer depths.
-    print(bold_text("Identified Layers\nDepth from (m) : Depth to (m)"))
+    print(bold_text("Identified Layers\nDepth from (%s) : Depth to (%s)" % (scale_unit_of_measure, scale_unit_of_measure)))
     for k, v in overall_dictionary.items():
         if v[0] < 0:
             exit("Negative Depth value encountered. Script Terminated.\nPlease check depth column for discrepancies.")
@@ -1183,11 +1238,11 @@ def remove_black_lines(color_map):
         color_dict[m * ((len(color_map) - i) / ratio_px_pt) + c] = get_colour_name(j)[1]
 
     print(green_text("\nProcessed color column"))
-
-    # exit("COLOR DISPLAY")
+    #print(tot_len, height, ratio_px_pt, len(color_map))
+    #exit("COLOR DISPLAY")
     if debug_mode == 'yes':
         # DISPLAY DEPTH : COLORS
-        print(green_text("\nDepth (m) : Color"))
+        print(green_text("\nDepth (%s) : Color" % scale_unit_of_measure))
         for k, v in sorted(color_dict.items()):
             print("%0.3f : %s" % (k, v))
 
@@ -1304,7 +1359,7 @@ OUTPUT TO CSV FORMAT
 '''
 
 
-def write_to_csv(h_lines, env, color):
+def write_to_csv(h_lines, env, color, unique_loc=[]):
     # LAS_Interval = 0.01  # This is the interval that defined how often to output a depth in the LAS File type output.
     LAS_Interval_prec = int((len(str(LAS_Interval).split('.')[1])))
     print(green_text("\nProcessing CSV Information"))
@@ -1388,6 +1443,10 @@ def write_to_csv(h_lines, env, color):
         if list(v[3][0])[0] == 'Blank Space' and list(v[3][0])[1] in [99, 100]:
             del h_lines[k]
 
+    if cuttings_mode == "yes":
+        unique_loc = []
+    # unique_loc = []
+    # print(unique_loc)
     for k, v in h_lines.items():
         cat_temp_val = []
         for k1 in unique_loc:
@@ -1398,23 +1457,24 @@ def write_to_csv(h_lines, env, color):
         h_lines[k].append(x)
 
     # Output to CSV File as depth interval
-    print(green_text("\nFINAL OUTPUT\nLAYER INTERVAL FORMAT\n"))
-    layered_output = os.path.join(os.path.dirname(pdf_name), os.path.splitext(os.path.basename(pdf_name))[0] + p_id + '_Layered_output.csv')
-    with open(layered_output, 'w') as writecsv:
-        writer = csv.writer(writecsv, lineterminator='\n')
-        writer.writerow(["Depth From (m)", "Depth To (m)", "Depositional Environment", "Lithology (Mid Depth)", "Biogenic", "Percentages"])
-        # print(h_lines)
-        for k, v in h_lines.items():
-            i = (v[0] + v[1]) / 2
-            color_at_def_depth = color.get(i) or color[min(color.keys(), key=lambda n: abs(n - i))]
-            if color_at_def_depth in litho_legend:
-                litho = litho_legend[color_at_def_depth]
-            else:
-                litho = color_at_def_depth
-            # print("%.1f\t-\t%.1f : %s\t%s\t%s\t%s" % (v[0], v[1], v[2], litho, v[4], v[3])) # Print to terminal window
-            writer.writerow(["{0:.{prec}f}".format(v[0], prec = LAS_Interval_prec), "{0:.{prec}f}".format(v[1], prec = LAS_Interval_prec), v[2], litho, v[4]] + v[3])
-    writecsv.close()
-    print(green_text("Depth interval output file written"))
+    if cuttings_mode != "yes":
+        print(green_text("\nFINAL OUTPUT\nLAYER INTERVAL FORMAT\n"))
+        layered_output = os.path.join(os.path.dirname(pdf_name), os.path.splitext(os.path.basename(pdf_name))[0] + p_id + '_Layered_output.csv')
+        with open(layered_output, 'w') as writecsv:
+            writer = csv.writer(writecsv, lineterminator='\n')
+            writer.writerow(["Depth From (%s)" % scale_unit_of_measure, "Depth To (%s)" % scale_unit_of_measure, "Depositional Environment", "Lithology (Mid Depth)", "Biogenic", "Percentages"])
+            # print(h_lines)
+            for k, v in h_lines.items():
+                i = (v[0] + v[1]) / 2
+                color_at_def_depth = color.get(i) or color[min(color.keys(), key=lambda n: abs(n - i))]
+                if color_at_def_depth in litho_legend:
+                    litho = litho_legend[color_at_def_depth]
+                else:
+                    litho = color_at_def_depth
+                # print("%.1f\t-\t%.1f : %s\t%s\t%s\t%s" % (v[0], v[1], v[2], litho, v[4], v[3])) # Print to terminal window
+                writer.writerow(["{0:.{prec}f}".format(v[0], prec = LAS_Interval_prec), "{0:.{prec}f}".format(v[1], prec = LAS_Interval_prec), v[2], litho, v[4]] + v[3])
+        writecsv.close()
+        print(green_text("Depth interval output file written"))
 
     # Output to LAS File
     # print to Terminal window
@@ -1422,7 +1482,10 @@ def write_to_csv(h_lines, env, color):
     LAS_output = os.path.join(os.path.dirname(pdf_name), os.path.splitext(os.path.basename(pdf_name))[0] + p_id + '_LAS_output.csv')
     with open(LAS_output, 'w') as writecsv:
         writer = csv.writer(writecsv, lineterminator='\n')
-        writer.writerow(["Depth (m)", "Facies Code",  "Lithology", "No. Biogenic", "Percentages"])
+        if cuttings_mode != "yes":
+            writer.writerow(["Depth (%s)" % scale_unit_of_measure, "Facies Code",  "Lithology", "No. Biogenic", "Percentages"])
+        else:
+            writer.writerow(["Depth (%s)" % scale_unit_of_measure, "Facies Code", "Lithology"])
         for k, v in h_lines.items():
             for i in np.arange(v[0], v[1], LAS_Interval):
                 color_at_def_depth = color.get(i) or color[min(color.keys(), key=lambda z: abs(z - i))]
@@ -1432,7 +1495,10 @@ def write_to_csv(h_lines, env, color):
                     litho = color_at_def_depth
                 f_code = facies_code(v[2], litho)
                 # print('%.1f \t%s \t%s \t%s \t%s' % (round(i, 1), f_code, litho, v[4], v[3]))  # Print to terminal window
-                writer.writerow(["{0:.{prec}f}".format(i, prec = LAS_Interval_prec), f_code, litho, v[4]] + v[3])
+                if cuttings_mode != "yes":
+                    writer.writerow(["{0:.{prec}f}".format(i, prec = LAS_Interval_prec), f_code, litho, v[4]] + v[3])
+                else:
+                    writer.writerow(["{0:.{prec}f}".format(i, prec=LAS_Interval_prec), f_code, litho])
     writecsv.close()
     print(green_text("LAS output file written"))
 
@@ -1467,7 +1533,7 @@ def write_to_csv(h_lines, env, color):
             except UnboundLocalError:
                 new_px_loc = px_loc - 5
                 print(red_text("\nDefault Pixel Column incorrect.\nReloading Script and adjusting Pixel to %s\n" % new_px_loc))
-                open_file(pdf_name, new_px_loc, LAS_Interval_prec)
+                open_file(pdf_name, new_px_loc, LAS_Interval_prec, depth_pixel_r, depth_pixel_l)
     writecsv.close()
     readcsv.close()
 
@@ -1491,7 +1557,8 @@ def findSubdirectories(dir_path):
             if filename.endswith('.pdf'):
 
                 # print (os.path.join(root,name))
-                sub_dirs.append(os.path.join(root, filename))
+                # sub_dirs.append(os.path.join(root, dirs))
+                sub_dirs.append(root)
                 # print (os.path.join(root,name))
                 # sub_dirs.append(os.path.join(root, dir_name, filename))
     sub_dirs = sorted(list(set(sub_dirs)))  # Sort directories alphabetically in ascending order
@@ -1550,6 +1617,12 @@ MAIN MODULE
 if __name__ == "__main__":
     try:
         import multiprocessing
+        global debug
+        debug_mode = ""
+
+        open_file(
+            "/hdd/home/aly/Dropbox/Python_Codes/Git_new_core_logging/JP_Submission_2022/Talisman_c-65-F_Page_1/Talisman_c-65-F_Page_1.pdf",
+            765, 0.1, 40, 60)
 
         # answer = "Y"
 

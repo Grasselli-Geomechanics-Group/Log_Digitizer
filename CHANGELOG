@@ -13,12 +13,12 @@ The script will keep looping till it is able to identify a Pixel ID where the co
 
 20180910 - Version 06
 The identification of the scale is now automated.
-The script uses OCR to identify the depth and the depositional environment.
+The script uses Text Extraction to identify the depth and the depositional environment.
 Fixed issue with different size (length) logs.
 Fixed issue of description spanning to the extremities of the log.
 Change in algorithm of the script.
 Vigorous quality control measures.
-Parsing OCR data.
+Parsing Text Extraction data.
 Return facies code.
 
 20180724 - Version 05

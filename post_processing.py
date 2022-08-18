@@ -185,15 +185,15 @@ def parse_obj(lt_objs):
         # if it is a textbox, print text and location
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
             y_mid_height = (obj.bbox[1] + obj.bbox[3]) / 2
-            # DISPLAY All OCR Matches on the page.
-            # print("%6d, %6d, %6d, %6d, => %6d - %6d => dx=%6d dy=%6d - %s" % (obj.bbox[0], obj.bbox[1], obj.bbox[2], obj.bbox[3], obj.bbox[0], y_mid_height, obj.bbox[2] - obj.bbox[0], obj.bbox[3] - obj.bbox[1],  obj.get_text().replace('\n','_')))  # Print all OCR Matches and the bounding box locations.
+            # DISPLAY All Text Extraction Matches on the page.
+            # print("%6d, %6d, %6d, %6d, => %6d - %6d => dx=%6d dy=%6d - %s" % (obj.bbox[0], obj.bbox[1], obj.bbox[2], obj.bbox[3], obj.bbox[0], y_mid_height, obj.bbox[2] - obj.bbox[0], obj.bbox[3] - obj.bbox[1],  obj.get_text().replace('\n','_')))  # Print all Text Extraction Matches and the bounding box locations.
             coord.append([obj.bbox[0], y_mid_height])  # List of all X/Y of bounding boxes. Y is mid/height.
             corel[obj.get_text().replace('\n', '_')] = [obj.bbox[0], y_mid_height]  # Dictionary of {TEXT : [X , Y]}
         # if it is a container, recurse. That is, LTFigure objects are containers for other LT* objects, so recurse through the children
         elif isinstance(obj, pdfminer.layout.LTFigure):
             parse_obj(obj._objs)
 
-    print(green_text("PDF OCR COMPLETED. \n"))
+    print(green_text("PDF Text Extraction COMPLETED. \n"))
 
     # Run the module to obtain any possible information of the log.
     log_info(coord, corel)
@@ -217,7 +217,7 @@ def parse_obj(lt_objs):
                     print(red_text("Error in Depth Column\nPossible text detected:\t %s" % obj.get_text().replace('\n', '_')))
 
     # Sort by location in the column
-    # Separate the OCR depth from the point location
+    # Separate the Text Extraction depth from the point location
     depths = OrderedDict(sorted(depths.items(), key=lambda t: t[0]))
     a, b = [], []
 
@@ -233,18 +233,18 @@ def parse_obj(lt_objs):
     # import statistics
     # print(statistics.stdev([(x*1.0) / y for x,y in zip(list_a, list_b)]))
 
-    # Equation of linear correlation between OCR depth [a] & Pt. location [b]
+    # Equation of linear correlation between Text Extraction depth [a] & Pt. location [b]
     # between second and second last to avoid movement of last depth avoiding extension of page
     # Identified and overcomes depths at extents of log (Lily a-9-J).
     y, x = [a[1], a[-2]], [b[1], b[-2]]
     coeff(x, y)
 
     # DISPLAY the entire depth column matches {DEPTH : VALUE}
-    print(green_text("\nProcessed Depth Column - OCR Mode.\nCoeff : %.3f x + %.3f.\n" % (m, c)))
-    print("Pt. : OCR Depth value")
+    print(green_text("\nProcessed Depth Column - Text Extraction Mode.\nCoeff : %.3f x + %.3f.\n" % (m, c)))
+    print("Pt. : Text Extraction Depth value")
     for key in depths:
-        print("%s Pt. : %s meters" % (key, bold_text(depths[key])))  # DISPLAY the OCR of the text sequence {Pt. : OCR Depth value}
-    # print(green_text("\nProcessed Depth Column - OCR Mode.\nCoeff : %s x + %s.\n" % (m, c)))
+        print("%s Pt. : %s meters" % (key, bold_text(depths[key])))  # DISPLAY the Text Extraction of the text sequence {Pt. : Text Extraction Depth value}
+    # print(green_text("\nProcessed Depth Column - Text Extraction Mode.\nCoeff : %s x + %s.\n" % (m, c)))
 
     '''
     PROCESS // PARSE ENVIRONMENT COLUMN
@@ -280,7 +280,7 @@ def parse_obj(lt_objs):
     #     print(k,v)
     dy = (sum(dys) / len(dys))
 
-    print(bold_text("\nValidating OCR in Environment Column\n"))
+    print(bold_text("\nValidating Text Extraction in Environment Column\n"))
     if dys:
         print(bold_text("Manual 'Enter' detected. Defined as %.2f Pt.\n" % dy))
     for key, v in list(texts.items()):
@@ -329,7 +329,7 @@ def parse_obj(lt_objs):
 
     env_matches = OrderedDict(sorted(env_matches.items()))
     # DISPLAY the entire environment matches {DEPTH : VALUE}
-    print(green_text("\nProcessed Environments - OCR Mode\n"))
+    print(green_text("\nProcessed Environments - Text Extraction Mode\n"))
     print('Depth (m) : Environment')
     for key in env_matches:
         print("%.3f : %s" % (key, bold_text(env_matches[key])))
@@ -571,7 +571,7 @@ def matching(match_fil_name, folder, threshold):
                 temp_locations.append(pt)
 
         # Sort matches based on Y location.
-        temp_locations = sorted(temp_locations, key=itemgetter(1, 0))
+        # temp_locations = sorted(temp_locations, key=itemgetter(1, 0))
 
     # Look for the unique points.
     # Minimum distance between matches set as half the smallest diagonal of the all template image.
@@ -579,10 +579,12 @@ def matching(match_fil_name, folder, threshold):
     unique = sorted(unique, key=itemgetter(1, 0))
 
     # Draw a color coded box around each matched template.
-    for pt in unique:
+    print(len(temp_locations), len(unique))
+    for pt in temp_locations:
         cv2.rectangle(img_bgr, pt, (pt[0] + w, pt[1] + h), color, 2)
         unique_loc.append(pt[1])
 
+    print("Found %s matches." % bold_text(len(temp_locations)))
     print("Found %s matches." % bold_text(len(unique)))
 
     # Write image showing the location of the detected matches.
@@ -992,47 +994,47 @@ def remove_black_lines(color_map):
     # for k, v in color_dict.items():
     #     print("%0.3d : %s" % (k, v))
 
-'''
-FACIES CODE
-
-- Criteria based on Dr. Moslow Email
-- Identifies the logic of the facies code, in accordance to the legend
-'''
-
-def facies_code(env_name, litho_color):
-    if env_name == 'LS':
-        f_code = str(1)
-    elif env_name == 'OT':
-        f_code = str(2)
-    elif env_name == 'OTP':
-        f_code = str(3) + 'A'
-    elif env_name in ('OTP/T', 'OTP / T', 'T/OTP', 'T / OTP'):
-        f_code = str(3) + 'B'
-    elif env_name == 'OTD':
-        f_code = str(4) + 'A'
-    elif env_name in ('OTD/T', 'OTD / T', 'T/OTD', 'T / OTD'):
-        f_code = str(4) + 'B'
-    elif env_name == 'O' and litho_color in ('Bituminous F-C Siltstone', 'Bituminous F-M Siltstone'):
-        f_code = str(5) + 'A'
-    elif env_name == 'O' and litho_color in ('Phosphatic - Bituminous Sandy Siltstone to Breccia'):
-        f_code = str(5) + 'B'
-    elif env_name in ('H', 'Hemipelagite'):
-        f_code = str(6)
-    elif env_name in ('Tempestites', 'Tempestite', 'T') and litho_color in ('Sandy F-C Siltstone to Silty VF Sandstone'):
-        f_code = str(7) + 'A'
-    elif env_name in ('Tempestites', 'Tempestite', 'T') and litho_color in ('Laminated Bedded Resedimented Bioclasts'):
-        f_code = str(7) + 'B'
-    elif env_name == 'Seismite':
-        f_code = str(8)
-    elif env_name == 'T. Lag' and litho_color in ("Phosphatic - Bituminous Sandy Siltstone to Breccia"):
-        f_code = str(9) + 'A'
-    elif env_name == 'T. Lag' and litho_color in ('Laminated Bedded Resedimented Bioclasts'):
-        f_code = str(9) + 'B'
-    elif env_name == 'Turb':
-        f_code = str(10)
-    else:
-        f_code = "UNKNOWN"
-    return f_code
+# '''
+# FACIES CODE
+#
+# - Criteria based on Dr. Moslow Email
+# - Identifies the logic of the facies code, in accordance to the legend
+# '''
+#
+# def facies_code(env_name, litho_color):
+#     if env_name == 'LS':
+#         f_code = str(1)
+#     elif env_name == 'OT':
+#         f_code = str(2)
+#     elif env_name == 'OTP':
+#         f_code = str(3) + 'A'
+#     elif env_name in ('OTP/T', 'OTP / T', 'T/OTP', 'T / OTP'):
+#         f_code = str(3) + 'B'
+#     elif env_name == 'OTD':
+#         f_code = str(4) + 'A'
+#     elif env_name in ('OTD/T', 'OTD / T', 'T/OTD', 'T / OTD'):
+#         f_code = str(4) + 'B'
+#     elif env_name == 'O' and litho_color in ('Bituminous F-C Siltstone', 'Bituminous F-M Siltstone'):
+#         f_code = str(5) + 'A'
+#     elif env_name == 'O' and litho_color in ('Phosphatic - Bituminous Sandy Siltstone to Breccia'):
+#         f_code = str(5) + 'B'
+#     elif env_name in ('H', 'Hemipelagite'):
+#         f_code = str(6)
+#     elif env_name in ('Tempestites', 'Tempestite', 'T') and litho_color in ('Sandy F-C Siltstone to Silty VF Sandstone'):
+#         f_code = str(7) + 'A'
+#     elif env_name in ('Tempestites', 'Tempestite', 'T') and litho_color in ('Laminated Bedded Resedimented Bioclasts'):
+#         f_code = str(7) + 'B'
+#     elif env_name == 'Seismite':
+#         f_code = str(8)
+#     elif env_name == 'T. Lag' and litho_color in ("Phosphatic - Bituminous Sandy Siltstone to Breccia"):
+#         f_code = str(9) + 'A'
+#     elif env_name == 'T. Lag' and litho_color in ('Laminated Bedded Resedimented Bioclasts'):
+#         f_code = str(9) + 'B'
+#     elif env_name == 'Turb':
+#         f_code = str(10)
+#     else:
+#         f_code = "UNKNOWN"
+#     return f_code
 
 
 '''
@@ -1173,6 +1175,7 @@ def write_to_csv(h_lines, env, color, bl_unique_loc):
                 else:
                     litho = color_at_def_depth
                 f_code = facies_code(dep_env[pos][1], litho)
+                print("DEP ENV", dep_env)
                 # print('%.1f \t%s \t%s \t%s \t%s' % (round(i, 1), v[2], litho, v[4], v[3]))  # Print to terminal window
                 writer.writerow(["{0:.1f}".format(i), f_code, dep_env[pos][1], litho, dep_env[pos][2]] + percent[pos_left][1])
         writecsv.close()
