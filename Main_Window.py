@@ -169,18 +169,38 @@ class Core_GUI(Frame):
         self.LAS_precision_int = Entry(self.input, textvariable=self.v1)
         self.LAS_precision_int.grid(row=7, column=2, sticky=W)
 
+        #Predefined Pixel ID
+        self.temp_match_label = Label(self.input, text="Template Match ID Range\tLeft")
+        self.temp_match_label.grid(row=8, column=1, sticky=W)
+
+        self.temp_matchd1 = IntVar()
+        self.temp_matchd1.set(190)
+        self.temp_matchd1_ID = Entry(self.input, textvariable=self.temp_matchd1)
+        # self.d1_ID.pack(side=LEFT)
+        self.temp_matchd1_ID.grid(row=8, column=2, sticky=W)
+
+        #Predefined Pixel ID
+        self.temp_match_label = Label(self.input, text="\t\t\tRight")
+        self.temp_match_label.grid(row=9, column=1, sticky=W)
+
+        self.temp_matchd2 = IntVar()
+        self.temp_matchd2.set(240)
+        self.temp_matchd2_ID = Entry(self.input, textvariable=self.temp_matchd2)
+        # self.d2_ID.pack(side=LEFT)
+        self.temp_matchd2_ID.grid(row=9, column=2, sticky=W)
+
         #Predefined Precision (Units of measure)
         self.LAS_unit = Label(self.input, text="Units")
-        self.LAS_unit.grid(row=8, column=1, sticky=W)
+        self.LAS_unit.grid(row=10, column=1, sticky=W)
 
         self.LASunits = StringVar()
         self.LASunits.set('meters')
         self.LAS_precision_unit = OptionMenu(self.input, self.LASunits, *Available_Units)
-        self.LAS_precision_unit.grid(row=8, column=2, sticky=W)
+        self.LAS_precision_unit.grid(row=10, column=2, sticky=W)
 
         self.deb_status = IntVar()
         self.debug_mode_status = Checkbutton(self.input, text="Enable Debugging", variable=self.deb_status)
-        self.debug_mode_status.grid(row=9, column=1, sticky=W)
+        self.debug_mode_status.grid(row=11, column=1, sticky=W)
 
         self.organizing_grid()
 
@@ -214,7 +234,7 @@ class Core_GUI(Frame):
 
         # Execute image.py
         if filename:
-            image.open_file(filename, self.v.get(), self.v1.get(), self.d1.get(), self.d2.get(), self.LASunits.get())
+            image.open_file(filename, self.v.get(), self.v1.get(), self.d1.get(), self.d2.get(), self.temp_matchd1_ID.get(), self.temp_matchd2_ID.get(), self.LASunits.get())
             image.processing_complete()
 
         root.destroy()
@@ -249,7 +269,8 @@ class Core_GUI(Frame):
                 for filename in files:
                     if filename.endswith('.pdf'):
                         full_fname = os.path.join(sub_dir, filename)
-                        image.open_file(full_fname, self.v.get(), self.v1.get(), self.d1.get(), self.d2.get())
+                        image.open_file(full_fname, self.v.get(), self.v1.get(), self.d1.get(), self.d2.get(),
+                                        self.temp_matchd1_ID.get(), self.temp_matchd2_ID.get(), self.LASunits.get())
         image.processing_complete()
 
         root.destroy()
