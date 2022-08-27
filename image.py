@@ -155,13 +155,18 @@ GLOBAL OPENING OF FILE
 '''
 
 
-def open_file(f_name, px_location, LAS_Interval_precsision, left_depth, rigth_depth, unit_of_measure='meters'):
+def open_file(f_name, px_location, LAS_Interval_precsision, left_depth, rigth_depth,
+              left_tempmatch, right_tempmatch,
+              unit_of_measure='meters'):
     global indiv_time, LAS_Interval
     LAS_Interval = LAS_Interval_precsision
     indiv_time = time.time()
     global r_depth_pixel, l_depth_pixel
     l_depth_pixel = left_depth
     r_depth_pixel = rigth_depth
+    global r_tempmatch_pixel, l_tempmatch_pixel
+    l_tempmatch_pixel = left_tempmatch
+    r_tempmatch_pixel = right_tempmatch
     global scale_unit_of_measure
     scale_unit_of_measure = unit_of_measure
     val = pdf_file_info.main(f_name)
@@ -271,7 +276,7 @@ PROCESS // PARSE ALL PDF
 '''
 
 
-def parse_obj(lt_objs):
+def parse_obj(lt_objs, pg_mediabox):
     global failed_log
     failed_log = ''
     coord, corel, depths = [], {}, {}
@@ -330,12 +335,13 @@ def parse_obj(lt_objs):
     # IMPORTANT NOTE: May return weird values if there are weird numbers in the column.
 
     depth_col_x1, depth_col_x2 = l_depth_pixel, r_depth_pixel
-    if cuttings_mode == "yes":
-        print("Processing Cuttings Logs")
-        depth_col_x1, depth_col_x2 = 250, 308
-    else:
-        depth_col_x1, depth_col_x2 = 40, 60
+    # if cuttings_mode == "yes":
+    #     print("Processing Cuttings Logs")
+    #     depth_col_x1, depth_col_x2 = 250, 308
+    # else:
+    #     depth_col_x1, depth_col_x2 = 40, 60
 
+    print(green_text("Reading Depth Column between %3d and %3d Pt." % (depth_col_x1, depth_col_x2)))
     for obj in lt_objs:
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
             if int(obj.bbox[0]) in range(depth_col_x1, depth_col_x2) and int(obj.bbox[1]) < y_loc:
@@ -413,9 +419,10 @@ def parse_obj(lt_objs):
     '''CONSIDER THIS IN A POOL'''
 
     texts, dys = {}, []
+    # Lookup text in entire page
     for obj in lt_objs:
         if isinstance(obj, pdfminer.layout.LTTextBoxHorizontal):
-            if int(obj.bbox[0]) in range(100, 535) and int(obj.bbox[1]) < y_loc:
+            if int(obj.bbox[0]) in range(int(pg_mediabox[0]), int(pg_mediabox[2])) and int(obj.bbox[1]) < y_loc:
                 # text, location = "%.3f, %s" % (m * obj.bbox[1] + c, obj.get_text().replace('\n', '_'))
                 # print("%.3f, %s" % (m * obj.bbox[1] + c, obj.get_text().replace('\n', '_')))
                 # print(m * obj.bbox[1] + c, m * obj.bbox[3] + c)
@@ -650,7 +657,7 @@ def initial_processing():
 
         # load module to parse every object encountered in the PDF
 
-        parse_obj(layout._objs)
+        parse_obj(layout._objs, page.mediabox)
         if failed_log == 'yes':
             return
 
@@ -707,8 +714,8 @@ def cropping_pdf():
             # Crop off the sed_biogenic column
             # for i in range(numpages):
             sed_struc_log = log_input.getPage(page_count - 1)
-            sed_struc_log.mediaBox.lowerLeft = (240, y2)
-            sed_struc_log.mediaBox.upperRight = (190, y1) # 215
+            sed_struc_log.mediaBox.lowerLeft = (r_tempmatch_pixel, y2)
+            sed_struc_log.mediaBox.upperRight = (l_tempmatch_pixel, y1) # 215
             sed_struc_log_output.addPage(sed_struc_log)
 
             # Write cropped area as a new PDF
@@ -1533,7 +1540,8 @@ def write_to_csv(h_lines, env, color, unique_loc=[]):
             except UnboundLocalError:
                 new_px_loc = px_loc - 5
                 print(red_text("\nDefault Pixel Column incorrect.\nReloading Script and adjusting Pixel to %s\n" % new_px_loc))
-                open_file(pdf_name, new_px_loc, LAS_Interval_prec, depth_pixel_r, depth_pixel_l)
+                # open_file(pdf_name, new_px_loc, LAS_Interval_prec, depth_pixel_r, depth_pixel_l)
+                open_file(pdf_name, new_px_loc, LAS_Interval_prec, depth_pixel_r, depth_pixel_l, left_tempmatch, right_tempmatch, unit_of_measure = 'meters')
     writecsv.close()
     readcsv.close()
 
@@ -1622,7 +1630,7 @@ if __name__ == "__main__":
 
         open_file(
             "/hdd/home/aly/Dropbox/Python_Codes/Git_new_core_logging/JP_Submission_2022/Talisman_c-65-F_Page_1/Talisman_c-65-F_Page_1.pdf",
-            765, 0.1, 40, 60)
+            765, 0.1, 40, 60, 190, 240)
 
         # answer = "Y"
 
