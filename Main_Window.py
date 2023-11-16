@@ -132,7 +132,7 @@ class Core_GUI(Frame):
         self.alessandro_cutting_log.grid(row=3, column=2, sticky=W)
 
         #Predefined Pixel ID
-        self.pixel_label = Label(self.input, text="Depth Pixel ID Range\tLeft")
+        self.pixel_label = Label(self.input, text="Extent of Depth Column\t\tLeft")
         self.pixel_label.grid(row=4, column=1, sticky=W)
 
         self.d1 = IntVar()
@@ -142,7 +142,7 @@ class Core_GUI(Frame):
         self.d1_ID.grid(row=4, column=2, sticky=W)
 
         #Predefined Pixel ID
-        self.pixel_label = Label(self.input, text="\t\t\tRight")
+        self.pixel_label = Label(self.input, text="\t\t\t\tRight")
         self.pixel_label.grid(row=5, column=1, sticky=W)
 
         self.d2 = IntVar()
@@ -152,42 +152,42 @@ class Core_GUI(Frame):
         self.d2_ID.grid(row=5, column=2, sticky=W)
 
         #Predefined Pixel ID
-        self.pixel_label = Label(self.input, text="Lithology Pixel ID")
-        self.pixel_label.grid(row=6, column=1, sticky=W)
-
-        self.v = IntVar()
-        self.v.set(765)
-        self.pixel_ID = Entry(self.input, textvariable=self.v)
-        self.pixel_ID.grid(row=6, column=2, sticky=W)
-
-        #Predefined Precision
-        self.LAS_precision = Label(self.input, text="Resolution")
-        self.LAS_precision.grid(row=7, column=1, sticky=W)
-
-        self.v1 = DoubleVar()
-        self.v1.set(0.1)
-        self.LAS_precision_int = Entry(self.input, textvariable=self.v1)
-        self.LAS_precision_int.grid(row=7, column=2, sticky=W)
-
-        #Predefined Pixel ID
-        self.temp_match_label = Label(self.input, text="Template Match ID Range\tLeft")
-        self.temp_match_label.grid(row=8, column=1, sticky=W)
+        self.temp_match_label = Label(self.input, text="Extent of Template Match Column\tLeft")
+        self.temp_match_label.grid(row=6, column=1, sticky=W)
 
         self.temp_matchd1 = IntVar()
         self.temp_matchd1.set(190)
         self.temp_matchd1_ID = Entry(self.input, textvariable=self.temp_matchd1)
         # self.d1_ID.pack(side=LEFT)
-        self.temp_matchd1_ID.grid(row=8, column=2, sticky=W)
+        self.temp_matchd1_ID.grid(row=6, column=2, sticky=W)
 
         #Predefined Pixel ID
-        self.temp_match_label = Label(self.input, text="\t\t\tRight")
-        self.temp_match_label.grid(row=9, column=1, sticky=W)
+        self.temp_match_label = Label(self.input, text="\t\t\t\tRight")
+        self.temp_match_label.grid(row=7, column=1, sticky=W)
 
         self.temp_matchd2 = IntVar()
         self.temp_matchd2.set(240)
         self.temp_matchd2_ID = Entry(self.input, textvariable=self.temp_matchd2)
         # self.d2_ID.pack(side=LEFT)
-        self.temp_matchd2_ID.grid(row=9, column=2, sticky=W)
+        self.temp_matchd2_ID.grid(row=7, column=2, sticky=W)
+
+        #Predefined Pixel ID
+        self.pixel_label = Label(self.input, text="Lithology Pixel ID")
+        self.pixel_label.grid(row=8, column=1, sticky=W)
+
+        self.v = IntVar()
+        self.v.set(765)
+        self.pixel_ID = Entry(self.input, textvariable=self.v)
+        self.pixel_ID.grid(row=8, column=2, sticky=W)
+
+        #Predefined Precision
+        self.LAS_precision = Label(self.input, text="Resolution")
+        self.LAS_precision.grid(row=9, column=1, sticky=W)
+
+        self.v1 = DoubleVar()
+        self.v1.set(0.1)
+        self.LAS_precision_int = Entry(self.input, textvariable=self.v1)
+        self.LAS_precision_int.grid(row=9, column=2, sticky=W)
 
         #Predefined Precision (Units of measure)
         self.LAS_unit = Label(self.input, text="Units")
