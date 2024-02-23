@@ -34,10 +34,10 @@ Requires
 '''
 
 
-def create_sub_directories(root_dir):
+def create_sub_directories(root_dir, file_ext='.pdf'):
     for directory, subdirectories, files in os.walk(root_dir):
         for file in files:
-            if file.endswith('.pdf'):  # Look for files ending with PDF
+            if file.endswith(file_ext):  # Look for files ending with PDF
                 fil_name = (os.path.splitext(file)[0])  # Get file name without extension
                 create_folder(directory, fil_name)  # Create directory
                 # Move PDF to the new directory
@@ -51,4 +51,9 @@ def create_sub_directories(root_dir):
                         shutil.copy(os.path.join("templates", i), template_folder)
 
 
-# create_sub_directories('/home/aly/Desktop/Progress_Energy/20190408_logs')
+if __name__ == "__main__":
+    try:
+        create_sub_directories('/home/aly/Desktop/20220525_Stav/Logs', file_ext='.xlsx')
+    except KeyboardInterrupt:
+        exit("TERMINATED BY USER")
+#

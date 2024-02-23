@@ -100,7 +100,7 @@ def main(f_name):
         fonts = fonts.union(f)
         embedded = embedded.union(e)
 
-    # Check Font and return the possibility of OCR on the file.
+    # Check Font and return the possibility of Text Extraction on the file.
     unembedded = fonts - embedded
     if fonts:
         print(green_text(('Font List => %s' % fonts,)))
