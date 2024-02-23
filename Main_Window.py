@@ -7,10 +7,6 @@
 # Current Version 01 - Dated Apr 11, 2019
 # /////////////////////////////////////////////////////////////// #
 
-# WAND ERROR!!
-# https://stackoverflow.com/questions/52699608/wand-policy-error-error-constitute-c-readimage-412
-
-
 import sys# import csv
 # import webcolors
 #

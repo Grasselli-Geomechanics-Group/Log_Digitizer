@@ -895,8 +895,21 @@ def convert(f_name, conv_resol):
             with Image(width=img.width, height=img.height, background=Color("white")) as bg:
                 bg.composite(img, 0, 0)
                 # bg.alpha_channel = False
+                bg.background_color = Color('white')
                 bg.save(filename=os.path.splitext(f_name)[0] + p_id + '_python_convert.png')
         fil_name = os.path.splitext(f_name)[0] + p_id + '_python_convert.png'
+
+        im = PIL.Image.open(fil_name)
+        rgb_im_neg = im.convert('RGB')
+        if get_colour_name(rgb_im_neg.getpixel((20, 1000)))[1] == 'black':
+            print(red_text('Negative Image\nRemoving Old Image\nConverting Image'))
+            os.remove(fil_name)
+            convert_from_path(f_name, dpi=conv_resol, output_folder=os.path.join(os.path.dirname(f_name)), first_page=convert_p,
+                              last_page=convert_p, fmt='png')
+            rename(f_name)
+        im.close()
+        fil_name = os.path.splitext(f_name)[0] + p_id + '_python_convert.png'
+
     except wand.exceptions.CorruptImageError or TypeError:
         print(red_text("INVERTED IMAGE - PDF File maybe corrupted"))
         convert_from_path(f_name, dpi=conv_resol, output_folder=os.path.join(os.path.dirname(f_name)), first_page=convert_p,
