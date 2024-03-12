@@ -1,55 +1,25 @@
-# /////////////////////////////////////////////////////////////// #
-# !python3.6
-# -*- coding: utf-8 -*-
-# Python Script initially created on 03/03/19 
-# Compiled by Aly @ Grasselli Geomechanics Group, UofT, 2019 
-# Created using PyCharm 
-# Current Version - Dated Apr 23, 2018
-# /////////////////////////////////////////////////////////////// #
+###
+# Script that loads the PDF and checks for compatibility.
+###
 
-# import time
-
-# /// TIMER FUNCTION /// #
-
-
-def calc_timer_values(end_time):
-    minutes, sec = divmod(end_time, 60)
-    if end_time < 60:
-        return("\033[1m%.2f seconds\033[0m" % end_time)
-    else:
-        return("\033[1m%d minutes and %d seconds\033[0m." % (minutes, sec))
-
-
-# /// ADMINISTRATIVE AND SORTING OF FILES IN FOLDER /// #
-
-
-def red_text(val):  # RED Bold text
-    tex = "\033[1;31m%s\033[0m" % val
-    return tex
-
-
-def green_text(val):  # GREEN Bold text
-    tex = "\033[1;92m%s\033[0m" % val
-    return tex
-
-
-def bold_text(val):  # Bold text
-    tex = "\033[1m%s\033[0m" % val
-    return tex
-
-
+import log_digitizer
 def walk(obj, fnt, emb):
-    '''
+    """
     If there is a key called 'BaseFont', that is a font that is used in the document.
     If there is a key called 'FontName' and another key in the same dictionary object
-    that is called 'FontFilex' (where x is null, 2, or 3), then that font name is
-    embedded.
+    that is called 'FontFilex' (where x is null, 2, or 3), then that font name is embedded.
 
-    We create and add to two sets, fnt = fonts used and emb = fonts embedded.
-    '''
+    We create and add to two sets, fnt =  and emb = fonts embedded.
+    :param obj: object being passed, page in the PDF.
+    :param fnt: fonts used
+    :param emb: fonts embedded
+    :return: return fnt,emb sets for each page
+    :rtype: object
+    """
+
     if not hasattr(obj, 'keys'):
         return None, None
-    fontkeys = set(['/FontFile', '/FontFile2', '/FontFile3'])
+    fontkeys = {'/FontFile', '/FontFile2', '/FontFile3'}  # set({'/FontFile', '/FontFile2', '/FontFile3'})
     if '/BaseFont' in obj:
         fnt.add(obj['/BaseFont'])
     if '/FontName' in obj:
@@ -63,16 +33,22 @@ def walk(obj, fnt, emb):
 
 
 def main(f_name):
-    # from pdfminer.pdfparser import PDFParser
-    # from pdfminer.pdfdocument import PDFDocument
+    """
+    Checks for the file compatibility in terms of fonts. It no fonts are embedded in the file, the script will not run on that file and all parts of the scripts (namely, the depth) is tied to the fact that it needs to read the values in the depth column.
+
+    :param f_name: name of the PDF file to be processed
+    :type f_name: string
+
+    :return: True/False on whether the script can process the PDF.
+    :rtype: bool
+    """
+
+    # Import and Read the PDF.
     from PyPDF2 import PdfFileReader
 
-    # for i in sub_dirs:
-
-    # fp = open(f_name, 'rb')
-    # parser = PDFParser(fp)
-    # doc = PDFDocument(parser)
     pdf_toread = PdfFileReader(open(f_name, "rb"))
+
+    # Read and assign variables based on the metadata
     pdf_info = pdf_toread.getDocumentInfo()
     try:
         date = pdf_info['/CreationDate']
@@ -84,17 +60,17 @@ def main(f_name):
         author = "Unknown"
         creator = "Unknown"
         producer = "Unknown"
+
+    # print PDF metadata. Can be helpful if few files do not process when in batch mode. Maybe a pattern can be discovered.
     print(
-        green_text("PDF Engines %s %s, Made by %s on %s" % (str(producer), str(creator), str(author), str(date)[2:10])))
+        log_digitizer.green_text("PDF Engines %s %s, Made by %s on %s" % (str(producer), str(creator), str(author), str(date)[2:10])))
 
-    '''
-    CHECK FONTS
-    '''
-
-    pdf = PdfFileReader(f_name)
+    # Read and assign font types.
     fonts = set()
     embedded = set()
-    for page in pdf.pages:
+
+    # Read all pages and gather font information.
+    for page in pdf_toread.pages:
         obj = page.getObject()
         f, e = walk(obj['/Resources'], fonts, embedded)
         fonts = fonts.union(f)
@@ -102,14 +78,17 @@ def main(f_name):
 
     # Check Font and return the possibility of Text Extraction on the file.
     unembedded = fonts - embedded
-    if fonts:
-        print(green_text(('Font List => %s' % fonts,)))
-        skip_file = 'no'
-    else:
-        print(red_text("No Fonts Found"))
-        skip_file = "yes"
-    if unembedded:
-        print(red_text('\nUnembedded Fonts'))
-        skip_file = "no"
+
+    if fonts:  # Fonts found.
+        print(log_digitizer.green_text('List of fonts found in PDF = %s' % fonts,))
+        skip_file = False
+    else:  # No Fonts found.
+        print(log_digitizer.red_text("No Fonts Found"))
+        skip_file = True
+
+    if unembedded:  # Unrecognised embedded fonts found.
+        print(log_digitizer.red_text('\nUnembedded/Unrecognised Fonts'))
+        skip_file = False
+
     return skip_file
 

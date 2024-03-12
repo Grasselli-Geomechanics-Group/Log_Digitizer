@@ -8,9 +8,17 @@
 # /////////////////////////////////////////////////////////////// #
 
 import time
-# /// TIMER FUNCTION /// #
+
 
 def calc_timer_values(end_time):
+    """
+    Calculates the time taken to execute the function. Converts the seconds into minutes and seconds.
+
+    :param end_time: the time needed to execute the function.
+    :type end_time: float
+    :return: the end time in seconds format OR minute and second format.
+    """
+
     minutes, sec = divmod(end_time, 60)
     if end_time < 60:
         return ("\033[1m%.2f seconds\033[0m" % end_time)
@@ -18,34 +26,57 @@ def calc_timer_values(end_time):
         return ("\033[1m%d minutes and %d seconds\033[0m." % (minutes, sec))
 
 
-# /// ADMINISTRATIVE AND SORTING OF FILES IN FOLDER /// #
+def red_text(val):
+    """
+    Returns text in RED BOLD text
 
-
-def red_text(val):  # RED Bold text
+    :param val: string to be converted.
+    :type val: str
+    :return: text in RED BOLD format.
+    """
     tex = "\033[1;31m%s\033[0m" % val
     return tex
 
 
-def green_text(val):  # GREEN Bold text
+def green_text(val):
+    """
+    Returns text in GREEN BOLD text
+
+    :param val: string to be converted.
+    :type val: str
+    :return: text in GREEN BOLD format.
+    """
     tex = "\033[1;92m%s\033[0m" % val
     return tex
 
 
-def bold_text(val):  # Bold text
+def bold_text(val):
+    """
+    Returns text in BOLD text
+
+    :param val: string to be converted.
+    :type val: str
+    :return: text in BOLD format.
+    """
     tex = "\033[1m%s\033[0m" % val
     return tex
 
+# Records the start time of the script.
 start = tot_start = time.time()
 
 def walk(obj, fnt, emb):
-    '''
+    """
     If there is a key called 'BaseFont', that is a font that is used in the document.
-    If there is a key called 'FontName' and another key in the same dictionary object
-    that is called 'FontFilex' (where x is null, 2, or 3), then that fontname is
-    embedded.
+    If there is a key called 'FontName' and another key in the same dictionary object that is called 'FontFilex' (where x is null, 2, or 3), then that fontname is embedded.
 
     We create and add to two sets, fnt = fonts used and emb = fonts embedded.
-    '''
+
+    :param obj: object
+    :param fnt: fonts used
+    :param emb: fonts embedded
+    :return: return the sets for each page
+    """
+
     if not hasattr(obj, 'keys'):
         return None, None
     fontkeys = set(['/FontFile', '/FontFile2', '/FontFile3'])
@@ -58,7 +89,7 @@ def walk(obj, fnt, emb):
     for k in obj.keys():
         walk(obj[k], fnt, emb)
 
-    return fnt, emb  # return the sets for each page
+    return fnt, emb
 
 def main(dir_path):
     from pdfminer.pdfparser import PDFParser
@@ -66,9 +97,7 @@ def main(dir_path):
     from PyPDF2 import PdfFileReader
 
     import os
-    # dir_path = "/home/aly/Desktop/Progress_Energy/processed_to_Progress/20190408_Talisman"
 
-    # def findSubdirectories(dir_path):
     sub_dirs = []
     for root, dirs, files in os.walk(dir_path):
         # for dir_name in dirs:
@@ -149,27 +178,23 @@ def main(dir_path):
     # pro_list_Set = set([tuple([tuple(sorted(image_dict.items())) for image_dict in inner_list]) for inner_list in pro_list])
     # err_list_Set = set([tuple([tuple(sorted(image_dict.items())) for image_dict in inner_list]) for inner_list in err_list])
 
-    l = []
+    l_of_processed_files = []
     for i in pro_list:
-        if i not in l:
-            l.append(i)
-    # print(x for x in l)
-
-    print(l)
+        if i not in l_of_processed_files:
+            l_of_processed_files.append(i)
 
 
-    print("NOT Processed")
-    # print(set(err_aut), set(err_creat), set(err_pro))
-
-    l = []
+    l_of_unprocessed_files = []
     for i in err_list:
-        if i not in l:
-            l.append(i)
-    # print(x for x in l)
-    print(l)
+        if i not in l_of_unprocessed_files:
+            l_of_unprocessed_files.append(i)
 
-    # print(pro_list_Set)
-    # print(err_list_Set)
+    if l_of_unprocessed_files:
+        print(red_text("File Not Processed"))
+        print(l_of_unprocessed_files)
+    else:
+        print(green_text("All Files Processed"))
+
 
 # if __name__ == "__main__":
     # try:
