@@ -1,10 +1,25 @@
 This repository is based on, please cite below if you use it :
 
-Aly Abdelaziz, Greg M. Baniak, Thomas F. Moslow, Alessandro Terzuoli, Giovanni Grasselli; A novel method for digitizing sedimentological graphic logs and exporting into reservoir modeling software. AAPG Bulletin 2024;; 108 (3): 421–434. doi: https://doi.org/10.1306/10182321114 
+Aly Abdelaziz, Greg M. Baniak, Thomas F. Moslow, Alessandro Terzuoli, Giovanni Grasselli; A novel method for digitizing sedimentological graphic logs and exporting into reservoir modeling software. AAPG Bulletin 2024; 108 (3): 421–434. doi: https://doi.org/10.1306/10182321114 
 
 The work presented herein proposes a novel approach to digitize the information contained within graphic logs. The digitized data are captured in a manner that allows it to be mapped into various other software. Hence, adopting such an approach provides unprecedented value in terms of harvesting sedimentological and petrographic data and integrating them into various other fields.
 
 The log must be made using computer aided graphics and in PDF format, for e.g., designed using Adobe AI, CorelDraw. Alternatively, the logs maybe drawn on Microsoft Excel or any equivalent spreadsheet software program and exported as PDFs. **The script is not capable of handling scanned papers or scanned files saved as PDFs**.
+
+# GUI and Features
+
+![Instance of the Graphic Log GUI](GUI_Instance.png)!
+
+## Processing Mode
+
+- **Batch Folder**: The batch mode is extremely beneficial if the graphic logs were created using a standardized form or template. If any of the script limitations are met (see the section Limitations), then the processing of that log will terminate and the script will proceed to load the next file, if any. 
+- **Single File**: Process the graphic logs (PDF), as an individual file.
+
+## Enable Folder Structure
+
+## Resolution 
+
+# Extrenal Loaded Databases 
 
 ## CSV Databases
 
