@@ -80,8 +80,19 @@ An example of an output as it is displayed in the Terminal:
 
 # FAQ
 
+## ImageMagick Error
+
+Ensure that the following is installed. If not install them and then restart your computer and reexecute the script:
+1. [ImageMagick](https://imagemagick.org/index.php)
+1. [GhostScript](https://www.ghostscript.com/)
+
 ## WAND Error 
 
 If you run into an PIL WAND error, please refer to this link for a possible solution 
 https://stackoverflow.com/questions/52699608/wand-policy-error-error-constitute-c-readimage-412
 
+# Known Issues
+
+## Multi-Page PDFs
+
+While the script will run and execute as intended. The *.csv output are in the wrong depth ranges especially if the data across the pages is of different length. Current workaround, please make the multi-page PDF into single page PDFs.
