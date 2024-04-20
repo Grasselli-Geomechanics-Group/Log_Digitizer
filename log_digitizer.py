@@ -657,7 +657,7 @@ def initial_processing(f_name_to_process):
             return
 
         # Convert pdf at the specified resolution
-        convert_pdf_to_png(f_name_to_process, resol, p_id)
+        convert_pdf_to_png(f_name_to_process, resol, p_id, page_count)
 
         # Load image and obtain necessary information
         rgb_im, width, height = load_image(fil_name)
@@ -750,7 +750,7 @@ def cropping_pdf(pdf_name, p_id, height, ratio_px_pt, page_count):
 
         # Open PDF and convert to PNG (h_resol) for image processing.
         out_f = (os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]), "sed_struc_log" + str(p_id) + ".pdf"))
-        convert_pdf_to_png(out_f, h_resol, p_id)
+        convert_pdf_to_png(out_f, h_resol, p_id, page_count)
 
         # Load image, template folder and execute matching module using biogenic parameters and threshold
         cropped_pdf_image = (os.path.join(os.path.dirname(os.path.splitext(pdf_name)[0]),
@@ -942,7 +942,7 @@ def rename_multipage_pdf(new_f_name, page_count, p_id):
     return names
 
 
-def convert_pdf_to_png(f_name, conv_resol, p_id):
+def convert_pdf_to_png(f_name, conv_resol, p_id, page_count):
     """
     CONVERT PDF TO PNG
 
@@ -968,8 +968,8 @@ def convert_pdf_to_png(f_name, conv_resol, p_id):
     if len(p_id) == 0:
         convert_p = 1
     else:
-        convert_p = page_count
-        print("Converting Page %s with PID %s" % (convert_p, p_id))
+        convert_p = p_id
+        print("Converting Page %s with PID %s" % (page_count, p_id))
 
     try:
         with Image(filename=f_name, resolution=conv_resol) as img:
