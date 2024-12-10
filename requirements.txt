@@ -1,5 +1,6 @@
-Pillow~=10.0.0 #downgrade to 7.0.0 for ptyohn 3.7
-numpy~=1.23.0
+Pillow~=10.0.0 #downgrade to 7.0.0 for python 3.7
+setuptools
+numpy #~=1.23.0
 pdfminer #~=20191125
 imutils~=0.5.4
 opencv-python~=4.6.0.66
